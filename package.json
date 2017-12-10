@@ -1,0 +1,26 @@
+{
+  "name": "js-testings",
+  "version": "1.0.0",
+  "description": "it is web-site for creating own test",
+  "main": "Gruntfile.js",
+  "dependencies": {},
+  "devDependencies": {
+    "brfs": "^1.4.3",
+    "grunt": "^1.0.1",
+    "grunt-browserify": "^5.2.0",
+    "grunt-contrib-watch": "^1.0.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AnastasiaKozachuk/JS-TestingProject.git"
+  },
+  "author": "Kozachuk Anastasia",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AnastasiaKozachuk/JS-TestingProject/issues"
+  },
+  "homepage": "https://github.com/AnastasiaKozachuk/JS-TestingProject#readme"
+}
