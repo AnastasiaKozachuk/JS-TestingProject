@@ -38,7 +38,13 @@ $(function() {
         $("#switch1").addClass("switcherStyle");
     });
 
+    $("#nextStep").click(function(){
+        location.href = "create-page.html";
+    });
 
+    $("#backToMain").click(function(){
+        location.href = "index.html";
+    });
 
 });
 
