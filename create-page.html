@@ -20,7 +20,7 @@
         <img src="design/photo/create-page.png">
         <div class="container" style="min-width: 525px; width:55%;">
             <div class="row" id="header-button">
-                <div class="col-xs-6" style="height: 125px;" ><button type="button" id="backToMain">Головна сторінка</div>
+                <div class="col-xs-6" style="height: 125px;" ><button type="button" id="backToMain">Головна сторінка</button></div>
                 <div class="col-xs-6" style="height: 125px;" ><button type="button" id="getID">Отримати код</button></div>
             </div>
         </div>
@@ -31,8 +31,20 @@
 
 <div id="main-create">
 
-    <div id="time">
-        <input type="text" class="forTime" name="time" placeholder="Час проходження опитування" >
+    <div class="nameQuiz"><textarea  id="nameNewQuiz" style=" text-align:center; overflow-y :hidden;outline: none;border:0; width: 750px; resize: none;" placeholder="Назва опитування" rows="1" wrap="hard"></textarea></div>
+
+    <div id="questionsArea">
+
+    </div>
+
+
+    <div style="text-align: center; margin-top: 50px;">
+         <button type="button" id="addQuestion">Додати</button>
+    </div>
+
+
+    <div id="time" style="height: 200px;margin-top: 30px;">
+        <input type="text" id="timeinput" class="forTime" name="time" maxlength="6" placeholder="Час проходження опитування" >
        <div class="info"> <span >Час задається в хвилинах <br> (якщо 0, то час не обмежений)</span> </div>
     </div>
 </div>

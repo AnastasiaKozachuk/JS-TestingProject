@@ -1,48 +1,28 @@
 $(function() {
 
-    $("#switch1").click(function () {
-        $("#rowOne").css("display","block");
-        $("#rowTwo").css("display","none");
-        $("#rowThree").css("display","none");
-        $("#switch1").css("background-color","#1d1a21");
-        $("#switch2").css("background-color","#392d40");
-        $("#switch3").css("background-color","#392d40");
-        $("#switch1").removeClass("switcherStyle");
-        $("#switch2").addClass("switcherStyle");
-        $("#switch3").addClass("switcherStyle");
+    var switcher = require("./switcher");
+    switcher.start();
+
+    var createQuiz = require("./createQuiz");
+
+
+    createQuiz.initializeQuize();
+    $("#addQuestion").click(function () {
+        createQuiz.addQuestion();
     });
 
-    $("#switch2").click(function () {
-        $("#rowOne").css("display","none");
-        $("#rowTwo").css("display","block");
-        $("#rowThree").css("display","none");
-        $("#switch1").css("background-color","#392d40");
-        $("#switch2").css("background-color","#1d1a21");
-        $("#switch3").css("background-color","#392d40");
-        $("#switch2").removeClass("switcherStyle");
-        $("#switch1").addClass("switcherStyle");
-        $("#switch3").addClass("switcherStyle");
+    var resizeTextarea = require("./resizeTextarea");
+
+    $("#nameNewQs").keydown(function () {
+        resizeTextarea.textAreaHeight(this);
     });
 
-
-    $("#switch3").click(function () {
-        $("#rowOne").css("display","none");
-        $("#rowTwo").css("display","none");
-        $("#rowThree").css("display","block");
-        $("#switch1").css("background-color","#392d40");
-        $("#switch2").css("background-color","#392d40");
-        $("#switch3").css("background-color","#1d1a21");
-        $("#switch3").removeClass("switcherStyle");
-        $("#switch2").addClass("switcherStyle");
-        $("#switch1").addClass("switcherStyle");
+    $("#nameNewQuiz").keydown(function () {
+        resizeTextarea.textAreaHeight(this);
     });
 
-    $("#nextStep").click(function(){
-        location.href = "create-page.html";
-    });
-
-    $("#backToMain").click(function(){
-        location.href = "index.html";
+    $("#variantAns1").keydown(function () {
+        resizeTextarea.textAreaHeight(this);
     });
 
 });

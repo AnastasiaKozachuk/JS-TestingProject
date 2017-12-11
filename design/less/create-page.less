@@ -1,8 +1,8 @@
 
 #header-create{
-  background-color: #ede4f8;
+  background-color: white;
   position: relative;
-  min-height: 300px;
+  min-height: 150px;
   width: 100%;
   text-align: center;
   color:white;
@@ -38,9 +38,31 @@
 }
 
 #main-create{
-  background-color: #ede4f8;
+  background-color: white;
   position: relative;
-  min-height: 600px;
+  min-height: 700px;
+
+  #addQuestion{
+    height: 60px;
+    width: 300px;
+    border-radius:8px ;
+    outline: none;
+    background-color: #392d40;
+    border :0px;
+    color:white;
+    text-align: center;
+    font-family: "Book Antiqua", Arial;
+    font-size: 23px;
+    box-shadow: inset 3px 3px 10px rgba(0,0,0,1);
+  }
+
+  #addQuestion:hover{
+    background-color: #866b8f !important;
+  }
+  #addQuestion:active{
+    background-color: #1d1a21 !important;
+  }
+
   #time{
 
     .forTime{
@@ -51,8 +73,8 @@
       margin: auto;
       border: 0px;
       text-align: center;
-      height: 70px;
-      width: 400px;
+      height: 60px;
+      width: 325px;
       border-radius:9px ;
       outline: none;
       font-family: "Book Antiqua", Arial;
@@ -74,5 +96,112 @@
     font-family: "Book Antiqua", Arial;
     color:#1d1a21;
   }
+  }
+
+  .nameQuiz{
+    padding-top:15px;
+    padding-bottom: 30px;
+    text-align: center;
+    font-size: 35px;
+    font-family: Arial;
+  }
+
+  #question{
+    width:55%;
+    min-width:525px;
+    position: relative;
+
+    .left-side{
+      background-color: #1d1a21;
+      color:white;
+      font-size: 18px;
+      font-family: Arial;
+      text-align: center;
+
+      .typeQuestion:hover{
+        background-color: #866b8f !important;
+      }
+      .typeQuestion:active{
+        background-color: #1d1a21 !important;
+      }
+    }
+
+    .right-side{
+      background-color: white;
+      color:#1d1a21;
+      font-size: 20px;
+      font-family: Arial;
+
+      #nameNewQs:focus{
+        border-bottom:1px solid #c6c6c6 !important;
+
+
+      }
+
+      #varianstArea{
+        #textVariantQuest:focus{
+          border-bottom:1px solid #c6c6c6 !important;
+        }
+      }
+      #removeVar{
+       color: #484848;
+        font-size: 22px;
+        background: linear-gradient(to top, #d6d6d6, #f9f9f9);
+      }
+      #removeVar:hover{
+        background: linear-gradient(to top, #b4b4b4, #e3e3e3);
+      }
+
+      #removeVar:active{
+        background: linear-gradient(to top, #a6a6a6, #f1f1f1);
+      }
+
+      #addVariant{
+        background: linear-gradient(to top, #d6d6d6, #f9f9f9);
+        font-size: 21px;
+        font-family: Arial;
+        color: #484848;
+        margin-top:17px;
+        outline: none;
+        border:1px solid #cacaca;
+        text-align: center;
+        border-radius: 3px;
+        width: 200px;
+        height: 40px;
+        margin-bottom: 17px;
+      }
+      #addVariant:hover{
+        background: linear-gradient(to top, #b4b4b4, #e3e3e3);
+      }
+
+      #addVariant:active{
+        background: linear-gradient(to top, #a6a6a6, #f1f1f1);
+      }
+    }
+
+    #removeQuestion{
+      outline: none;
+      border:0px;
+      text-align: center;
+      border-radius: 20px;
+      width:40px;
+      height: 40px;
+      position:absolute;
+      right: -50px;
+      bottom:0;
+      top:0;
+      margin:auto;
+      background-color:#1d1a21;
+      color:white;
+      font-size: 21px;
+
+    }
+    #removeQuestion:hover{
+      background-color: #866b8f !important;
+    }
+    #removeQuestion:active{
+      background-color: #1d1a21 !important;
+    }
+
   }
 }
