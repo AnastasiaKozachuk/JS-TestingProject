@@ -4,7 +4,7 @@ exports.mainPage = function(req, res) {
     });
 };
 
-exports.orderPage = function(req, res) {
+exports.createPage = function(req, res) {
     res.render('createPage', {
        // pageTitle: 'Create quiz'
     });

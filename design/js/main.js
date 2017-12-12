@@ -3,13 +3,9 @@ $(function() {
     var switcher = require("./switcher");
     switcher.start();
 
-    var createQuiz = require("./createQuiz");
 
 
-    createQuiz.initializeQuize();
-    $("#addQuestion").click(function () {
-        createQuiz.addQuestion();
-    });
+
 
     var resizeTextarea = require("./resizeTextarea");
 
@@ -27,4 +23,7 @@ $(function() {
 
 });
 
-
+var create = require("./createQuiz");
+$(document).ready(function() {
+    create.initializeQuize();
+});

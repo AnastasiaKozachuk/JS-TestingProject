@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quizzy learning</title>
+    <link rel="shortcut icon" href="photo/icon.ico" type="image/ico">
+    <!-- Bootsrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+
+    <!-- LESS основний файл -->
+    <link rel="stylesheet/less" type="text/css" href="less/main.less" />
+    <!-- LESS JavaScript компілятор -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/less.js/2.5.3/less.min.js"></script>
+</head>
+<body>
+
+
+<div id="header-main">
+    <h1>QUIZZY   LEARNING</h1>
+    <h2>Простий та потужний інструмент онлайн опитування</h2>
+    <div >
+        <img src="photo/main-page.png">
+        <div class="choose">Оберіть один з варіантів </div>
+    </div>
+
+</div>
+
+<div id="main">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 switcher " id="switch1">Створити опитування </div>
+            <div class="col-md-4 switcher switcherStyle" id="switch2"> Редагувати опитування </div>
+            <div class="col-md-4 switcher switcherStyle" id="switch3">  Пройти опитування </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 mainSwitch">
+                <div class="row" id="rowOne">
+                    <div class="description">Для того щоб створити нове опитування вам необхідно придумати назву свого опитування, записати її в поле,
+                        що знаходиться нижче, та натиснути кнопку "Наступний крок"</div>
+                    <div class="col-md-6 " style="text-align: center">
+                        <input type="text" id="nameQzCreate" class="forInput" name="nameQzcreate" placeholder="Назва опитування">
+                    </div>
+                    <div class="col-md-6 " style="text-align: center">
+                        <input type="text" id="passwordQz1" class="forInput" name="passwordQzCreate" placeholder="Пароль">
+                    </div>
+                </div>
+                <div class="row" style="display: none" id="rowTwo">
+                    <div class="description">Для того щоб редагувати створене вами опитування введіть ID вашого опитування та натисніть кнопку "Наступний крок"</div>
+                    <div class="col-md-6 " style="text-align: center">
+                        <input type="text" class="forInput" id="idChange" name="idChange" placeholder="ID опитування">
+                    </div>
+                    <div class="col-md-6 " style="text-align: center">
+                        <input type="text" id="passwordQz2" class="forInput" name="passwordQzChange" placeholder="Пароль">
+                    </div>
+                </div>
+                <div class="row" style="display: none" id="rowThree">
+                    <div class="description">Для того щоб пройти опитування вам необхідно вказати ваше ім'я та ID опитування, яке ви хочете пройти, і потім натиснути кнопку
+                        "Наступний крок"</div>
+                    <div class="col-md-6 " style="text-align: center">
+                        <input type="text" class="forInput" id="nameUser" name="nameUser" placeholder="Ваше ім'я">
+                    </div>
+                    <div class="col-md-6 " style="text-align: center">
+                        <input type="text" class="forInput" id="idPassed" name="idPassed" placeholder="ID опитування">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <button type="button" id="nextStep">Наступний крок</button>
+    </div>
+
+</div>
+
+<div id="footer">
+    <div>Практичний проект в межах курсу JavaScript в Києво-Могилянській Академії</div>
+</div>
+<!-- jQuery JavaScript -->
+<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"> </script>
+
+<!--Bootsrap JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+
+<!--Own JavaScript -->
+<script type="text/javascript"  src="main.js"> </script>
+</body>
+</html>

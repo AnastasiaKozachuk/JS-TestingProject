@@ -3,22 +3,37 @@ var express = require('express');
 var path = require('path');
 var morgan = require('morgan');
 var bodyParser = require('body-parser');
-
+var mongoose	=	require('mongoose');
 function configureEndpoints(app) {
     var pages = require('./pages');
     var api = require('./api');
 
+
+
+    mongoose.connect('mongodb://localhost/DBName');
+    var db=	mongoose.connection;
+
+    db.on('error',function(err){
+        console.log('connection	error:',err.message);
+    });
+
+    db.once('open',function callback(){
+        console.log("Connected to	DB!");
+    });
+
+
+
     //Налаштування URL за якими буде відповідати сервер
     //Отримання списку піц
-    app.get('/api/get-pizza-list/', api.getPizzaList);
-    app.post('/api/create-order/', api.createOrder);
+    app.get('/api/get-Quiz/', api.getQuiz);
+    app.post('/api/get-ID/', api.getID);
 
     //Сторінки
     //Головна сторінка
     app.get('/', pages.mainPage);
 
     //Сторінка замовлення
-    app.get('/order.html', pages.orderPage);
+    app.get('/create-page.html', pages.createPage);
 
     //Якщо не підійшов жоден url, тоді повертаємо файли з папки www
     app.use(express.static(path.join(__dirname, '../design')));

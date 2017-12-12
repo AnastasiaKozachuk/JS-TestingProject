@@ -1,5 +1,8 @@
 var Templates = require('./templates');
 var resizeTextarea = require("./resizeTextarea");
+var API = require('../API');
+var getDataFromUser=require("./switcher");
+var order_page = "http://localhost:5050/create-page.html";
 
 var myQuestion=[];
 
@@ -9,6 +12,7 @@ var time =0;
 
 
 function initializeQuize(){
+    $("#nameNewQuiz").val(localStorage.getItem("nameQuiz"));
     addQuestion();
 };
 
@@ -229,13 +233,48 @@ function addvariant($node,questionStructure,counts){
 
 
 }
+$("#addQuestion").click(function () {
+    addQuestion();
+});
 
 
 $("#timeinput").keyup(function () {
    time = $("#timeinput").val();
 });
 
+var ID="";
 
 
+$("#getID").click(function () {
+    getID(function (err, data) {
+        if(err){
+            alert("Can't create quiz.");
+        }else{
+            ID=data;
+            alert("ID вашого опитування: "+data);
+        }
+    });
+});
+
+
+
+function getID(callback) {
+    var nameQuiz=$("#nameNewQuiz").val();
+    var password=localStorage.getItem("password");
+    API.getID({
+        id:ID,
+        nameQuiz:nameQuiz ,
+        password: password,
+        quiz:myQuestion,
+        time:time
+    }, function (err,result) {
+        if(err){
+            return callback(err);
+        }
+        callback(null,result);
+    });
+};
+
+exports.getID = getID;
 exports.addQuestion=addQuestion;
 exports.initializeQuize=initializeQuize;

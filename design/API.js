@@ -29,10 +29,10 @@ function backendPost(url, data, callback) {
     })
 }
 
-exports.getPizzaList = function(callback) {
-    backendGet("/api/get-pizza-list/", callback);
+exports.getQuiz = function(callback) {
+    backendGet("/api/get-Quiz/", callback);
 };
 
-exports.createOrder = function(order_info, callback) {
-    backendPost("/api/create-order/", order_info, callback);
+exports.getID = function(quiz_info, callback) {
+    backendPost("/api/get-ID/", quiz_info, callback);
 };

@@ -1,6 +1,49 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+
+var API_URL = "http://localhost:5050";
+
+function backendGet(url, callback) {
+    $.ajax({
+        url: API_URL + url,
+        type: 'GET',
+        success: function(data){
+            callback(null, data);
+        },
+        error: function() {
+            callback(new Error("Ajax Failed"));
+        }
+    })
+}
+
+function backendPost(url, data, callback) {
+    $.ajax({
+        url: API_URL + url,
+        type: 'POST',
+        contentType : 'application/json',
+        data: JSON.stringify(data),
+        success: function(data){
+            callback(null, data);
+        },
+        error: function() {
+            callback(new Error("Ajax Failed"));
+        }
+    })
+}
+
+exports.getQuiz = function(callback) {
+    backendGet("/api/get-Quiz/", callback);
+};
+
+exports.getID = function(quiz_info, callback) {
+    backendPost("/api/get-ID/", quiz_info, callback);
+};
+
+},{}],2:[function(require,module,exports){
 var Templates = require('./templates');
 var resizeTextarea = require("./resizeTextarea");
+var API = require('../API');
+var getDataFromUser=require("./switcher");
+var order_page = "http://localhost:5050/create-page.html";
 
 var myQuestion=[];
 
@@ -10,6 +53,7 @@ var time =0;
 
 
 function initializeQuize(){
+    $("#nameNewQuiz").val(localStorage.getItem("nameQuiz"));
     addQuestion();
 };
 
@@ -230,29 +274,61 @@ function addvariant($node,questionStructure,counts){
 
 
 }
+$("#addQuestion").click(function () {
+    addQuestion();
+});
 
 
 $("#timeinput").keyup(function () {
    time = $("#timeinput").val();
 });
 
+var ID="";
 
 
+$("#getID").click(function () {
+    getID(function (err, data) {
+        if(err){
+            alert("Can't create quiz.");
+        }else{
+            ID=data;
+            alert("ID вашого опитування: "+data);
+        }
+    });
+});
+
+
+
+function getID(callback) {
+    var nameQuiz=$("#nameNewQuiz").val();
+    var password=localStorage.getItem("password");
+    API.getID({
+        id:ID,
+        nameQuiz:nameQuiz ,
+        password: password,
+        quiz:myQuestion,
+        time:time
+    }, function (err,result) {
+        if(err){
+            return callback(err);
+        }
+        callback(null,result);
+    });
+};
+
+exports.getID = getID;
 exports.addQuestion=addQuestion;
 exports.initializeQuize=initializeQuize;
-},{"./resizeTextarea":3,"./templates":5}],2:[function(require,module,exports){
+
+},{"../API":1,"./resizeTextarea":4,"./switcher":5,"./templates":6}],3:[function(require,module,exports){
 $(function() {
 
     var switcher = require("./switcher");
     switcher.start();
 
-    var createQuiz = require("./createQuiz");
 
 
-    createQuiz.initializeQuize();
-    $("#addQuestion").click(function () {
-        createQuiz.addQuestion();
-    });
+
 
     var resizeTextarea = require("./resizeTextarea");
 
@@ -270,9 +346,12 @@ $(function() {
 
 });
 
+var create = require("./createQuiz");
+$(document).ready(function() {
+    create.initializeQuize();
+});
 
-
-},{"./createQuiz":1,"./resizeTextarea":3,"./switcher":4}],3:[function(require,module,exports){
+},{"./createQuiz":2,"./resizeTextarea":4,"./switcher":5}],4:[function(require,module,exports){
 function textAreaHeight(textarea) {
     if (!textarea._tester) {
         var ta = textarea.cloneNode();
@@ -296,8 +375,25 @@ function textAreaHeight(textarea) {
 };
 
 exports.textAreaHeight=textAreaHeight;
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
+
+
+
+var main_page ="http://localhost:5050" ;
+var order_page = "http://localhost:5050/create-page.html";
+
+var nameQz="";
+var info_IDChanged="";
+var info_userName ="";
+var info_IDPassed="";
+var password="";
+
+
 function start() {
+
+
+
+
     $("#switch1").click(function () {
         $("#rowOne").show();
         $("#rowTwo").hide();
@@ -335,12 +431,51 @@ function start() {
         $("#switch1").addClass("switcherStyle");
     });
 
-    $("#nextStep").click(function(){
-        location.href = "create-page.html";
+
+
+    $("#nameQzCreate").keyup(function () {
+        nameQz=$("#nameQzCreate").val();
     });
 
+    $("#passwordQz1").keyup(function () {
+        password=$("#passwordQz1").val();
+    });
+    $("#idChange").keyup(function () {
+        info_IDChanged=$("#idChange").val();
+    });
+    $("#passwordQz2").keyup(function () {
+        password=$("#passwordQz2").val();
+    });
+
+    $("#nameUser").keyup(function () {
+        info_userName=$("#nameUser").val();
+    });
+
+    $("#idPassed").keyup(function () {
+        info_IDPassed=$("#idPassed").val();
+    });
+
+
+
+    $("#nextStep").click(function(){
+
+        if($("#nameQzCreate").val()!=""&&$("#passwordQz1").val()!=""){
+            localStorage.setItem("nameQuiz", nameQz);
+            localStorage.setItem("password", password);
+            location.href = order_page;
+        }else if($("#idChange").val()!=""&&$("#passwordQz2").val()!=""){
+            localStorage.setItem("IDchange", info_IDChanged);
+            localStorage.setItem("password", password);
+        }else if($("#nameUser").val()!=""&&$("#idPassed").val()!=""){
+            localStorage.setItem("NameUser",  info_userName);
+            localStorage.setItem("IDPassed", info_IDPassed);
+        }
+
+    });
+
+
     $("#backToMain").click(function(){
-        location.href = "index.html";
+        location.href = main_page;
     });
 
 
@@ -350,7 +485,9 @@ function start() {
 exports.start = start;
 
 
-},{}],5:[function(require,module,exports){
+
+
+},{}],6:[function(require,module,exports){
 
 var ejs = require('ejs');
 
@@ -359,9 +496,9 @@ exports.Question_Template = ejs.compile("<div id=\"question\" class=\"container\
 exports.Variant_Template = ejs.compile("\r\n    <div class=\"row\">\r\n        <div class=\"col-xs-1\"><input type=\"checkbox\"  id =\"checkbox\" name=\"variant1\" style=\"width:25px; height: 25px;\"> </div>\r\n        <div class=\"col-xs-8\"><textarea id=\"textVariantQuest\"  style=\" overflow-y :hidden;outline: none;border:0; width: 100%; resize: none; \" placeholder=\"Варіант відповіді\" rows=\"1\" wrap=\"hard\" ></textarea></div>\r\n        <div class=\"col-xs-2\"><button id=\"removeVar\" class=\"glyphicon glyphicon-remove\" style=\"outline: none; border:1px solid #cacaca; text-align: center; border-radius: 3px; width: 50px; height: 25px;\"></button> </div>\r\n    </div>\r\n\r\n");
 
 
-},{"ejs":7}],6:[function(require,module,exports){
+},{"ejs":8}],7:[function(require,module,exports){
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /*
  * EJS Embedded JavaScript templates
  * Copyright 2112 Matthew Eernisse (mde@fleegix.org)
@@ -1229,7 +1366,7 @@ if (typeof window != 'undefined') {
   window.ejs = exports;
 }
 
-},{"../package.json":9,"./utils":8,"fs":6,"path":10}],8:[function(require,module,exports){
+},{"../package.json":10,"./utils":9,"fs":7,"path":11}],9:[function(require,module,exports){
 /*
  * EJS Embedded JavaScript templates
  * Copyright 2112 Matthew Eernisse (mde@fleegix.org)
@@ -1395,7 +1532,7 @@ exports.cache = {
   }
 };
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 module.exports={
   "_args": [
     [
@@ -1511,7 +1648,7 @@ module.exports={
   "version": "2.5.7"
 }
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -1739,7 +1876,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require('_process'))
-},{"_process":11}],11:[function(require,module,exports){
+},{"_process":12}],12:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -1925,4 +2062,4 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}]},{},[2]);
+},{}]},{},[3]);

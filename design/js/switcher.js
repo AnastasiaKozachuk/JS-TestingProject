@@ -1,4 +1,21 @@
+
+
+
+var main_page ="http://localhost:5050" ;
+var order_page = "http://localhost:5050/create-page.html";
+
+var nameQz="";
+var info_IDChanged="";
+var info_userName ="";
+var info_IDPassed="";
+var password="";
+
+
 function start() {
+
+
+
+
     $("#switch1").click(function () {
         $("#rowOne").show();
         $("#rowTwo").hide();
@@ -36,12 +53,51 @@ function start() {
         $("#switch1").addClass("switcherStyle");
     });
 
-    $("#nextStep").click(function(){
-        location.href = "create-page.html";
+
+
+    $("#nameQzCreate").keyup(function () {
+        nameQz=$("#nameQzCreate").val();
     });
 
+    $("#passwordQz1").keyup(function () {
+        password=$("#passwordQz1").val();
+    });
+    $("#idChange").keyup(function () {
+        info_IDChanged=$("#idChange").val();
+    });
+    $("#passwordQz2").keyup(function () {
+        password=$("#passwordQz2").val();
+    });
+
+    $("#nameUser").keyup(function () {
+        info_userName=$("#nameUser").val();
+    });
+
+    $("#idPassed").keyup(function () {
+        info_IDPassed=$("#idPassed").val();
+    });
+
+
+
+    $("#nextStep").click(function(){
+
+        if($("#nameQzCreate").val()!=""&&$("#passwordQz1").val()!=""){
+            localStorage.setItem("nameQuiz", nameQz);
+            localStorage.setItem("password", password);
+            location.href = order_page;
+        }else if($("#idChange").val()!=""&&$("#passwordQz2").val()!=""){
+            localStorage.setItem("IDchange", info_IDChanged);
+            localStorage.setItem("password", password);
+        }else if($("#nameUser").val()!=""&&$("#idPassed").val()!=""){
+            localStorage.setItem("NameUser",  info_userName);
+            localStorage.setItem("IDPassed", info_IDPassed);
+        }
+
+    });
+
+
     $("#backToMain").click(function(){
-        location.href = "index.html";
+        location.href = main_page;
     });
 
 
@@ -49,4 +105,6 @@ function start() {
 };
 
 exports.start = start;
+
+
 
