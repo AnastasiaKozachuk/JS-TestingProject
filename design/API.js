@@ -29,8 +29,8 @@ function backendPost(url, data, callback) {
     })
 }
 
-exports.getQuiz = function(callback) {
-    backendGet("/api/get-Quiz/", callback);
+exports.getQuiz = function(ID_info, callback) {
+    backendPost("/api/get-Quiz/", ID_info,callback);
 };
 
 exports.getID = function(quiz_info, callback) {

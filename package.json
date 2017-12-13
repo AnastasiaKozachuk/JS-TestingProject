@@ -5,6 +5,7 @@
   "main": "Gruntfile.js",
   "dependencies": {},
   "devDependencies": {
+    "basil.js": "^0.4.3",
     "brfs": "^1.4.3",
     "ejs": "^2.5.7",
     "express": "^4.16.2",

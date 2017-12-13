@@ -1,8 +1,7 @@
 var Templates = require('./templates');
 var resizeTextarea = require("./resizeTextarea");
 var API = require('../API');
-var getDataFromUser=require("./switcher");
-var order_page = "http://localhost:5050/create-page.html";
+
 
 var myQuestion=[];
 
@@ -39,7 +38,7 @@ function addQuestion(){
     //ініціалізація дефолтного варіанту
     $($node.find("#firstType")).css("background-color","#1d1a21");
     $($node.find("#firstType")).removeClass("typeQuestion");
-    setTypeQs("checkbox",questionStructure);
+    setTypeQs("radio",questionStructure);
 
 
     //додавання нового запитання до тесту
@@ -125,6 +124,7 @@ function addQuestion(){
     });
 
     $node.find("#nameNewQs").keydown(function () {
+        resizeTextarea.textAreaHeight(this);
         resizeLeftside($($node.find(".right-side")[0]));
     });
 
@@ -275,6 +275,6 @@ function getID(callback) {
     });
 };
 
-exports.getID = getID;
+
 exports.addQuestion=addQuestion;
 exports.initializeQuize=initializeQuize;

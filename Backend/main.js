@@ -25,15 +25,14 @@ function configureEndpoints(app) {
 
     //Налаштування URL за якими буде відповідати сервер
     //Отримання списку піц
-    app.get('/api/get-Quiz/', api.getQuiz);
+    app.post('/api/get-Quiz/', api.getQuiz);
     app.post('/api/get-ID/', api.getID);
 
     //Сторінки
     //Головна сторінка
     app.get('/', pages.mainPage);
-
-    //Сторінка замовлення
     app.get('/create-page.html', pages.createPage);
+    app.get('/showQuize.html', pages.showQuize);
 
     //Якщо не підійшов жоден url, тоді повертаємо файли з папки www
     app.use(express.static(path.join(__dirname, '../design')));

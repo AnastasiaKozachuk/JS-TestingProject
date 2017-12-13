@@ -1,8 +1,9 @@
 
-
-
+var Storage = require('./Storage');
+var API = require('../API');
 var main_page ="http://localhost:5050" ;
 var order_page = "http://localhost:5050/create-page.html";
+var showQuize = "http://localhost:5050/showQuize.html";
 
 var nameQz="";
 var info_IDChanged="";
@@ -91,6 +92,29 @@ function start() {
         }else if($("#nameUser").val()!=""&&$("#idPassed").val()!=""){
             localStorage.setItem("NameUser",  info_userName);
             localStorage.setItem("IDPassed", info_IDPassed);
+
+            getQuiz(function (err,result) {
+                if(err){
+                    alert("Can't find quiz.");
+                }else{
+
+                    var quizData ={
+                        nameQuiz:result.nameQuiz ,
+                        quiz:result.quiz,
+                        time:result.time
+                    }
+                    console.log(quizData);
+                    if(quizData.nameQuiz!=""||quizData.quiz!=""||quizData.time!=""){
+                        Storage.write("quizData",quizData);
+                        location.href = showQuize;
+                    }else{
+                        alert("Can't find quiz.");
+                    }
+
+                }
+            });
+
+
         }
 
     });
@@ -103,6 +127,18 @@ function start() {
 
 
 };
+
+
+function getQuiz(callback) {
+    API.getQuiz({
+        id:info_IDPassed
+    }, function (err,result) {
+        if(err){
+            return callback(err);
+        }
+        callback(null,result);
+    });
+}
 
 exports.start = start;
 

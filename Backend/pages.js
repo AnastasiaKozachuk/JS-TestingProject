@@ -9,3 +9,9 @@ exports.createPage = function(req, res) {
        // pageTitle: 'Create quiz'
     });
 };
+
+exports.showQuize = function(req, res) {
+    res.render('showQuize', {
+        // pageTitle: 'Create quiz'
+    });
+};

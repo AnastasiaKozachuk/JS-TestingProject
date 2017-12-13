@@ -30,8 +30,8 @@ function backendPost(url, data, callback) {
     })
 }
 
-exports.getQuiz = function(callback) {
-    backendGet("/api/get-Quiz/", callback);
+exports.getQuiz = function(ID_info, callback) {
+    backendPost("/api/get-Quiz/", ID_info,callback);
 };
 
 exports.getID = function(quiz_info, callback) {
@@ -39,11 +39,20 @@ exports.getID = function(quiz_info, callback) {
 };
 
 },{}],2:[function(require,module,exports){
+var basil = require('basil.js');
+basil = new basil();
+exports.write = function(key,value){
+    return  basil.set(key,value);
+};
+
+exports.read = function(key){
+    return basil.get(key);
+};
+},{"basil.js":9}],3:[function(require,module,exports){
 var Templates = require('./templates');
 var resizeTextarea = require("./resizeTextarea");
 var API = require('../API');
-var getDataFromUser=require("./switcher");
-var order_page = "http://localhost:5050/create-page.html";
+
 
 var myQuestion=[];
 
@@ -80,7 +89,7 @@ function addQuestion(){
     //ініціалізація дефолтного варіанту
     $($node.find("#firstType")).css("background-color","#1d1a21");
     $($node.find("#firstType")).removeClass("typeQuestion");
-    setTypeQs("checkbox",questionStructure);
+    setTypeQs("radio",questionStructure);
 
 
     //додавання нового запитання до тесту
@@ -166,6 +175,7 @@ function addQuestion(){
     });
 
     $node.find("#nameNewQs").keydown(function () {
+        resizeTextarea.textAreaHeight(this);
         resizeLeftside($($node.find(".right-side")[0]));
     });
 
@@ -316,11 +326,11 @@ function getID(callback) {
     });
 };
 
-exports.getID = getID;
+
 exports.addQuestion=addQuestion;
 exports.initializeQuize=initializeQuize;
 
-},{"../API":1,"./resizeTextarea":4,"./switcher":5,"./templates":6}],3:[function(require,module,exports){
+},{"../API":1,"./resizeTextarea":5,"./templates":8}],4:[function(require,module,exports){
 $(function() {
 
     var switcher = require("./switcher");
@@ -332,9 +342,6 @@ $(function() {
 
     var resizeTextarea = require("./resizeTextarea");
 
-    $("#nameNewQs").keydown(function () {
-        resizeTextarea.textAreaHeight(this);
-    });
 
     $("#nameNewQuiz").keydown(function () {
         resizeTextarea.textAreaHeight(this);
@@ -344,14 +351,25 @@ $(function() {
         resizeTextarea.textAreaHeight(this);
     });
 
+    $("#textVariantAns").keydown(function () {
+        resizeTextarea.textAreaHeight(this);
+    });
+
 });
 
+var show = require("./showQuize");
 var create = require("./createQuiz");
+var Storage = require('./Storage');
 $(document).ready(function() {
     create.initializeQuize();
+    var saved_data = Storage.read("quizData");
+    if(saved_data){
+        show.startQuiz(saved_data);
+    }
+
 });
 
-},{"./createQuiz":2,"./resizeTextarea":4,"./switcher":5}],4:[function(require,module,exports){
+},{"./Storage":2,"./createQuiz":3,"./resizeTextarea":5,"./showQuize":6,"./switcher":7}],5:[function(require,module,exports){
 function textAreaHeight(textarea) {
     if (!textarea._tester) {
         var ta = textarea.cloneNode();
@@ -375,12 +393,215 @@ function textAreaHeight(textarea) {
 };
 
 exports.textAreaHeight=textAreaHeight;
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
+var Templates = require('./templates');
+
+var markOfUser=0;
+
+function startQuiz(data){
+
+    console.log(data);
+    setQuizName(data.nameQuiz);
+    setQuestion(data.quiz);
+    //must be ended
+    setTime(data.time);
+}
+
+function setQuizName(name){
+    $("#endName").text(name);
+}
+
+function  setQuestion(questionArray){
+    var count=0;
+    questionArray.forEach(function (oneQuestion, number) {
+
+        if(oneQuestion.questionType=="checkbox"){
+            setCheckboxQuest(oneQuestion,count);
+        }else if(oneQuestion.questionType=="radio"){
+            setRadioQuest(oneQuestion,count);
+        }else if(oneQuestion.questionType=="textField"){
+            setTextQuest(oneQuestion,count);
+        }
+        count++;
+    });
+}
 
 
 
+function getLenght(object){
+    var i=0;
+    for(var key in  object){
+        i++;
+    }
+    return i;
+}
+
+function setCheckboxQuest(objQuest,count){
+    var $answer = $(Templates.Answers_Template());
+
+    $answer.find("#answersName").text(objQuest.questionName);
+    $answer.find("#answerMark").text(objQuest.mark+" б.");
+
+
+    for(var key in  objQuest.answers){
+        addVariantCheckBox(key, $answer,count,objQuest);
+    }
+
+
+
+    $("#main-show").append($answer);
+}
+
+
+
+
+function addVariantCheckBox(key, $answer,count,objQuest){
+    var $checkQs =$(Templates.Checkbox_Template());
+    var numberOfCorAnsvers = getLenght(objQuest.correctAnswers);
+    var nameAttrib = String($checkQs.find("#checkboxAns").attr("name"))+count;
+    $checkQs.find("#checkboxAns").attr("name",nameAttrib);
+    $checkQs.find("#variantCheckBox").text(objQuest.answers[key]);
+    $answer.find("#answersArea").append($checkQs);
+
+    $checkQs.find("#checkboxAns").change(function () {
+        if(this.checked){
+            if ( existInObject($checkQs.find("#variantCheckBox").text(),objQuest.correctAnswers)) {
+                markOfUser+= objQuest.mark/numberOfCorAnsvers;
+            }
+        }
+        else{
+            if ( existInObject($checkQs.find("#variantCheckBox").text(),objQuest.correctAnswers)) {
+                markOfUser-= objQuest.mark/numberOfCorAnsvers;
+            }
+        }
+        console.log(markOfUser);
+    });
+}
+
+
+
+
+function setRadioQuest(objQuest,count){
+    var $answer = $(Templates.Answers_Template());
+
+
+    $answer.find("#answersName").text(objQuest.questionName);
+    $answer.find("#answerMark").text(objQuest.mark+" б.");
+
+
+
+    for(var key in  objQuest.answers){
+        addVariantRadio(key, $answer,count,objQuest);
+
+    }
+
+    $("#main-show").append($answer);
+}
+
+
+function addVariantRadio(key, $answer,count,objQuest){
+    var $radioQs =$(Templates.Radio_Template());
+    var nameAttrib = String($radioQs.find("#radioAns").attr("name"))+count;
+    $radioQs.find("#radioAns").attr("name",nameAttrib);
+
+    $radioQs.find("#variantRadio").text(objQuest.answers[key]);
+
+
+
+    $radioQs.find("#radioAns").change(function () {
+        if(this.checked&&($answer.find("#answersArea").attr("answer")=="no")){
+            if (   existInObject($radioQs.find("#variantRadio").text(),objQuest.correctAnswers) ) {
+                markOfUser+= parseInt(objQuest.mark);
+                $answer.find("#answersArea").attr("answer","yes");
+            }
+        }
+        else{
+
+            if (  !existInObject($radioQs.find("#variantRadio").text(),objQuest.correctAnswers) ) {
+                markOfUser-= parseInt(objQuest.mark);
+                $answer.find("#answersArea").attr("answer","no");
+            }
+
+
+        }
+
+        console.log(markOfUser);
+    });
+
+    $answer.find("#answersArea").append($radioQs);
+}
+
+
+function existInObject(element,object){
+    var exist=false;
+
+    for( var key in  object){
+
+        if(object[key]==element){
+            exist=true;
+        }
+
+    }
+
+    return exist;
+}
+
+
+
+
+function  setTextQuest(objQuest,count){
+    var $answer = $(Templates.Answers_Template());
+    var $textQs =$(Templates.Text_Template());
+
+    $answer.find("#answersName").text(objQuest.questionName);
+    $answer.find("#answerMark").text(objQuest.mark+" б.");
+
+    var nameAttrib = String($textQs.find("#textVariantAns").attr("name"))+count;
+    $textQs.find("#textVariantAns").attr("name",nameAttrib);
+
+
+    $textQs.find("#textVariantAns").focusout(function () {
+
+        if(existInObject($textQs.find("#textVariantAns").val(),objQuest.correctAnswers)&&$answer.find("#answersArea").attr("answer")=="no"){
+            markOfUser+= parseInt(objQuest.mark);
+            $answer.find("#answersArea").attr("answer","yes");
+        }else if(!existInObject($textQs.find("#textVariantAns").val(),objQuest.correctAnswers)&&$answer.find("#answersArea").attr("answer")=="yes"){
+            markOfUser-= parseInt(objQuest.mark);
+            $answer.find("#answersArea").attr("answer","no");
+        }
+
+
+        console.log(markOfUser);
+
+    });
+
+
+    $answer.find("#answersArea").append($textQs);
+
+
+
+    $("#main-show").append($answer);
+}
+
+
+
+$("#endQuize").click(function () {
+    alert(markOfUser);
+});
+
+
+function setTime(time){
+    $("#timer").text(time);
+}
+
+exports.startQuiz = startQuiz;
+},{"./templates":8}],7:[function(require,module,exports){
+
+var Storage = require('./Storage');
+var API = require('../API');
 var main_page ="http://localhost:5050" ;
 var order_page = "http://localhost:5050/create-page.html";
+var showQuize = "http://localhost:5050/showQuize.html";
 
 var nameQz="";
 var info_IDChanged="";
@@ -469,6 +690,29 @@ function start() {
         }else if($("#nameUser").val()!=""&&$("#idPassed").val()!=""){
             localStorage.setItem("NameUser",  info_userName);
             localStorage.setItem("IDPassed", info_IDPassed);
+
+            getQuiz(function (err,result) {
+                if(err){
+                    alert("Can't find quiz.");
+                }else{
+
+                    var quizData ={
+                        nameQuiz:result.nameQuiz ,
+                        quiz:result.quiz,
+                        time:result.time
+                    }
+                    console.log(quizData);
+                    if(quizData.nameQuiz!=""||quizData.quiz!=""||quizData.time!=""){
+                        Storage.write("quizData",quizData);
+                        location.href = showQuize;
+                    }else{
+                        alert("Can't find quiz.");
+                    }
+
+                }
+            });
+
+
         }
 
     });
@@ -482,23 +726,427 @@ function start() {
 
 };
 
+
+function getQuiz(callback) {
+    API.getQuiz({
+        id:info_IDPassed
+    }, function (err,result) {
+        if(err){
+            return callback(err);
+        }
+        callback(null,result);
+    });
+}
+
 exports.start = start;
 
 
 
 
-},{}],6:[function(require,module,exports){
+},{"../API":1,"./Storage":2}],8:[function(require,module,exports){
 
 var ejs = require('ejs');
 
 
 exports.Question_Template = ejs.compile("<div id=\"question\" class=\"container\" style=\"margin-top: 30px;margin-bottom: 30px;\">\r\n    <div class=\"row\">\r\n        <div class=\"col-xs-4\">\r\n            <div class=\"row left-side\" style=\"border-bottom-left-radius: 9px; border-top-left-radius: 9px; min-width: 180px;\">\r\n                <div class=\"col-xs-12 typeQuestion\" id=\"firstType\" style=\"background-color: #392d40 ; height: 60px; cursor:pointer; border-top-left-radius: 9px; padding-top: 18px;\">Один зі списку</div>\r\n                <div class=\"col-xs-12 typeQuestion\" id=\"secondType\" style=\"background-color: #392d40 ; height: 60px; cursor:pointer; padding-top: 18px;\">Декілька зі списку</div>\r\n                <div class=\"col-xs-12 typeQuestion\" id=\"thirdType\" style=\"background-color: #392d40 ; height: 60px; cursor:pointer; border-bottom-left-radius: 9px; padding-top: 18px;\">Рядок тексту</div>\r\n            </div>\r\n        </div>\r\n        <div class=\"col-xs-8\">\r\n            <div class=\"row right-side\" style=\"border: 2px solid #392d40; border-bottom-right-radius: 9px; border-top-right-radius: 9px; min-height:180px;\">\r\n                <div class=\"col-xs-12\">\r\n                    <div class=\"row\">\r\n                        <div class=\"col-xs-8\" style=\"padding-top: 10px; padding-bottom: 10px;\"><textarea id=\"nameNewQs\" style=\" overflow-y :hidden;outline: none; border:0;width: 100%; resize: none; font-size: 23px;\" placeholder=\"Заголовок запитання\" rows=\"1\" wrap=\"hard\"></textarea></div>\r\n                        <div  class=\"col-xs-1 hidden-sm hidden-xs\"></div>\r\n                        <div class=\"col-xs-3\" style=\"padding-top: 10px; padding-bottom: 10px;  text-align: right;\"><input id=\"mark\" style=\" outline: none; border:1px solid #b2b2b2; text-align: center; border-radius: 3px; width: 70px;\" maxlength=\"4\" placeholder=\"Бал\"></div>\r\n                    </div>\r\n                </div>\r\n\r\n                <div class=\"col-xs-12\" id=\"varianstArea\">\r\n\r\n\r\n                </div>\r\n                <div style=\"text-align: center;\">\r\n                    <button type=\"button\" id=\"addVariant\">Додати варіант</button>\r\n                </div>\r\n            </div>\r\n        </div>\r\n    </div>\r\n\r\n    <div>\r\n        <button id=\"removeQuestion\" class=\"glyphicon glyphicon-remove\" ></button>\r\n    </div>\r\n</div>");
 exports.Variant_Template = ejs.compile("\r\n    <div class=\"row\">\r\n        <div class=\"col-xs-1\"><input type=\"checkbox\"  id =\"checkbox\" name=\"variant1\" style=\"width:25px; height: 25px;\"> </div>\r\n        <div class=\"col-xs-8\"><textarea id=\"textVariantQuest\"  style=\" overflow-y :hidden;outline: none;border:0; width: 100%; resize: none; \" placeholder=\"Варіант відповіді\" rows=\"1\" wrap=\"hard\" ></textarea></div>\r\n        <div class=\"col-xs-2\"><button id=\"removeVar\" class=\"glyphicon glyphicon-remove\" style=\"outline: none; border:1px solid #cacaca; text-align: center; border-radius: 3px; width: 50px; height: 25px;\"></button> </div>\r\n    </div>\r\n\r\n");
+exports.Answers_Template = ejs.compile("<div class=\"container variantAns\" style=\"min-width: 525px; width:55%;\">\r\n    <div class=\"row\">\r\n        <div class=\"col-xs-9\" id=\"answersName\" style=\"padding-top: 20px;padding-left: 20px;  padding-bottom: 15px;font-size: 23px;\">Назва запитання</div>\r\n        <div class=\"col-xs-3\" id=\"answerMark\" style=\"padding-top: 20px;padding-left: 20px; padding-bottom: 15px;font-size: 23px;\">Бал</div>\r\n    </div>\r\n    <div id=\"answersArea\" answer=\"no\" style=\"margin-bottom: 15px;\">\r\n\r\n\r\n\r\n    </div>\r\n\r\n</div>");
+exports.Checkbox_Template = ejs.compile("<div class=\"row\" style=\"margin-top: 5px;margin-bottom: 5px;\">\r\n    <div class=\"col-xs-1\" ></div>\r\n    <div class=\"col-xs-1\" style=\"text-align: right; \" >  <input type=\"checkbox\"  id =\"checkboxAns\" name=\"variantcheckbox\" style=\"width:25px; height: 25px;   \"> </div>\r\n    <div class=\"col-xs-10\" style=\"padding-top: 3px;\" id=\"variantCheckBox\">Варіант відповіді 1</div>\r\n</div>\r\n");
+exports.Radio_Template = ejs.compile("<div class=\"row\" style=\"margin-top: 5px;margin-bottom: 5px;\">\r\n    <div class=\"col-xs-1\" ></div>\r\n    <div class=\"col-xs-1\" style=\"text-align: right; \" >  <input type=\"radio\"  id =\"radioAns\" name=\"variantradio\" style=\"width:25px; height: 25px;   \"> </div>\r\n    <div class=\"col-xs-10\" id=\"variantRadio\" style=\"padding-top: 3px;\">Варіант відповіді 1</div>\r\n</div>");
+exports.Text_Template = ejs.compile("<div class=\"row\" style=\"margin-bottom: 20px;margin-top: 10px;\" >\r\n    <div class=\"col-xs-1\"></div>\r\n    <div class=\"col-xs-10\"><textarea id=\"textVariantAns\" name=\"textAnswer\" style=\" overflow-y :hidden;outline: none;border:0; width: 100%; resize: none; \" placeholder=\"Введіть відповідь\" rows=\"1\" wrap=\"hard\" ></textarea></div>\r\n</div>");
 
 
-},{"ejs":8}],7:[function(require,module,exports){
+},{"ejs":11}],9:[function(require,module,exports){
+(function () {
+	// Basil
+	var Basil = function (options) {
+		return Basil.utils.extend({}, Basil.plugins, new Basil.Storage().init(options));
+	};
 
-},{}],8:[function(require,module,exports){
+	// Version
+	Basil.version = '0.4.4';
+
+	// Utils
+	Basil.utils = {
+		extend: function () {
+			var destination = typeof arguments[0] === 'object' ? arguments[0] : {};
+			for (var i = 1; i < arguments.length; i++) {
+				if (arguments[i] && typeof arguments[i] === 'object')
+					for (var property in arguments[i])
+						destination[property] = arguments[i][property];
+			}
+			return destination;
+		},
+		each: function (obj, fnIterator, context) {
+			if (this.isArray(obj)) {
+				for (var i = 0; i < obj.length; i++)
+					if (fnIterator.call(context, obj[i], i) === false) return;
+			} else if (obj) {
+				for (var key in obj)
+					if (fnIterator.call(context, obj[key], key) === false) return;
+			}
+		},
+		tryEach: function (obj, fnIterator, fnError, context) {
+			this.each(obj, function (value, key) {
+				try {
+					return fnIterator.call(context, value, key);
+				} catch (error) {
+					if (this.isFunction(fnError)) {
+						try {
+							fnError.call(context, value, key, error);
+						} catch (error) {}
+					}
+				}
+			}, this);
+		},
+		registerPlugin: function (methods) {
+			Basil.plugins = this.extend(methods, Basil.plugins);
+		},
+		getTypeOf: function (obj) {
+			if (typeof obj === 'undefined' || obj === null)
+				return '' + obj;
+			return Object.prototype.toString.call(obj).replace(/^\[object\s(.*)\]$/, function ($0, $1) { return $1.toLowerCase(); });
+		}
+	};
+  	// Add some isType methods: isArguments, isBoolean, isFunction, isString, isArray, isNumber, isDate, isRegExp, isUndefined, isNull.
+	var types = ['Arguments', 'Boolean', 'Function', 'String', 'Array', 'Number', 'Date', 'RegExp', 'Undefined', 'Null'];
+	for (var i = 0; i < types.length; i++) {
+		Basil.utils['is' + types[i]] = (function (type) {
+			return function (obj) {
+				return Basil.utils.getTypeOf(obj) === type.toLowerCase();
+			};
+		})(types[i]);
+	}
+
+	// Plugins
+	Basil.plugins = {};
+
+	// Options
+	Basil.options = Basil.utils.extend({
+		namespace: 'b45i1',
+		storages: ['local', 'cookie', 'session', 'memory'],
+		expireDays: 365
+	}, window.Basil ? window.Basil.options : {});
+
+	// Storage
+	Basil.Storage = function () {
+		var _salt = 'b45i1' + (Math.random() + 1)
+				.toString(36)
+				.substring(7),
+			_storages = {},
+			_isValidKey = function (key) {
+				var type = Basil.utils.getTypeOf(key);
+				return (type === 'string' && key) || type === 'number' || type === 'boolean';
+			},
+			_toStoragesArray = function (storages) {
+				if (Basil.utils.isArray(storages))
+					return storages;
+				return Basil.utils.isString(storages) ? [storages] : [];
+			},
+			_toStoredKey = function (namespace, path) {
+				var key = '';
+				if (_isValidKey(path)) {
+					key += path;
+				} else if (Basil.utils.isArray(path)) {
+					path = Basil.utils.isFunction(path.filter) ? path.filter(_isValidKey) : path;
+					key = path.join('.');
+				}
+				return key && _isValidKey(namespace) ? namespace + '.' + key : key;
+ 			},
+			_toKeyName = function (namespace, key) {
+				if (!_isValidKey(namespace))
+					return key;
+				return key.replace(new RegExp('^' + namespace + '.'), '');
+			},
+			_toStoredValue = function (value) {
+				return JSON.stringify(value);
+			},
+			_fromStoredValue = function (value) {
+				return value ? JSON.parse(value) : null;
+			};
+
+		// HTML5 web storage interface
+		var webStorageInterface = {
+			engine: null,
+			check: function () {
+				try {
+					window[this.engine].setItem(_salt, true);
+					window[this.engine].removeItem(_salt);
+				} catch (e) {
+					return false;
+				}
+				return true;
+			},
+			set: function (key, value, options) {
+				if (!key)
+					throw Error('invalid key');
+				window[this.engine].setItem(key, value);
+			},
+			get: function (key) {
+				return window[this.engine].getItem(key);
+			},
+			remove: function (key) {
+				window[this.engine].removeItem(key);
+			},
+			reset: function (namespace) {
+				for (var i = 0, key; i < window[this.engine].length; i++) {
+					key = window[this.engine].key(i);
+					if (!namespace || key.indexOf(namespace) === 0) {
+						this.remove(key);
+						i--;
+					}
+				}
+			},
+			keys: function (namespace) {
+				var keys = [];
+				for (var i = 0, key; i < window[this.engine].length; i++) {
+					key = window[this.engine].key(i);
+					if (!namespace || key.indexOf(namespace) === 0)
+						keys.push(_toKeyName(namespace, key));
+				}
+				return keys;
+			}
+		};
+
+		// local storage
+		_storages.local = Basil.utils.extend({}, webStorageInterface, {
+			engine: 'localStorage'
+		});
+		// session storage
+		_storages.session = Basil.utils.extend({}, webStorageInterface, {
+			engine: 'sessionStorage'
+		});
+
+		// memory storage
+		_storages.memory = {
+			_hash: {},
+			check: function () {
+				return true;
+			},
+			set: function (key, value, options) {
+				if (!key)
+					throw Error('invalid key');
+				this._hash[key] = value;
+			},
+			get: function (key) {
+				return this._hash[key] || null;
+			},
+			remove: function (key) {
+				delete this._hash[key];
+			},
+			reset: function (namespace) {
+				for (var key in this._hash) {
+					if (!namespace || key.indexOf(namespace) === 0)
+						this.remove(key);
+				}
+			},
+			keys: function (namespace) {
+				var keys = [];
+				for (var key in this._hash)
+					if (!namespace || key.indexOf(namespace) === 0)
+						keys.push(_toKeyName(namespace, key));
+				return keys;
+			}
+		};
+
+		// cookie storage
+		_storages.cookie = {
+			check: function () {
+				if (!navigator.cookieEnabled)
+					return false;
+				if (window.self !== window.top) {
+					// we need to check third-party cookies;
+					var cookie = 'thirdparty.check=' + Math.round(Math.random() * 1000);
+					document.cookie = cookie + '; path=/';
+					return document.cookie.indexOf(cookie) !== -1;
+				}
+				return true;
+			},
+			set: function (key, value, options) {
+				if (!this.check())
+					throw Error('cookies are disabled');
+				options = options || {};
+				if (!key)
+					throw Error('invalid key');
+				var cookie = encodeURIComponent(key) + '=' + encodeURIComponent(value);
+				// handle expiration days
+				if (options.expireDays) {
+					var date = new Date();
+					date.setTime(date.getTime() + (options.expireDays * 24 * 60 * 60 * 1000));
+					cookie += '; expires=' + date.toGMTString();
+				}
+				// handle domain
+				if (options.domain && options.domain !== document.domain) {
+					var _domain = options.domain.replace(/^\./, '');
+					if (document.domain.indexOf(_domain) === -1 || _domain.split('.').length <= 1)
+						throw Error('invalid domain');
+					cookie += '; domain=' + options.domain;
+				}
+				// handle secure
+				if (options.secure === true) {
+					cookie += '; secure';
+				}
+				document.cookie = cookie + '; path=/';
+			},
+			get: function (key) {
+				if (!this.check())
+					throw Error('cookies are disabled');
+				var encodedKey = encodeURIComponent(key);
+				var cookies = document.cookie ? document.cookie.split(';') : [];
+				// retrieve last updated cookie first
+				for (var i = cookies.length - 1, cookie; i >= 0; i--) {
+					cookie = cookies[i].replace(/^\s*/, '');
+					if (cookie.indexOf(encodedKey + '=') === 0)
+						return decodeURIComponent(cookie.substring(encodedKey.length + 1, cookie.length));
+				}
+				return null;
+			},
+			remove: function (key) {
+				// remove cookie from main domain
+				this.set(key, '', { expireDays: -1 });
+				// remove cookie from upper domains
+				var domainParts = document.domain.split('.');
+				for (var i = domainParts.length; i >= 0; i--) {
+					this.set(key, '', { expireDays: -1, domain: '.' + domainParts.slice(- i).join('.') });
+				}
+			},
+			reset: function (namespace) {
+				var cookies = document.cookie ? document.cookie.split(';') : [];
+				for (var i = 0, cookie, key; i < cookies.length; i++) {
+					cookie = cookies[i].replace(/^\s*/, '');
+					key = cookie.substr(0, cookie.indexOf('='));
+					if (!namespace || key.indexOf(namespace) === 0)
+						this.remove(key);
+				}
+			},
+			keys: function (namespace) {
+				if (!this.check())
+					throw Error('cookies are disabled');
+				var keys = [],
+					cookies = document.cookie ? document.cookie.split(';') : [];
+				for (var i = 0, cookie, key; i < cookies.length; i++) {
+					cookie = cookies[i].replace(/^\s*/, '');
+					key = decodeURIComponent(cookie.substr(0, cookie.indexOf('=')));
+					if (!namespace || key.indexOf(namespace) === 0)
+						keys.push(_toKeyName(namespace, key));
+				}
+				return keys;
+			}
+		};
+
+		return {
+			init: function (options) {
+				this.setOptions(options);
+				return this;
+			},
+			setOptions: function (options) {
+				this.options = Basil.utils.extend({}, this.options || Basil.options, options);
+			},
+			support: function (storage) {
+				return _storages.hasOwnProperty(storage);
+			},
+			check: function (storage) {
+				if (this.support(storage))
+					return _storages[storage].check();
+				return false;
+			},
+			set: function (key, value, options) {
+				options = Basil.utils.extend({}, this.options, options);
+				if (!(key = _toStoredKey(options.namespace, key)))
+					return false;
+				value = options.raw === true ? value : _toStoredValue(value);
+				var where = null;
+				// try to set key/value in first available storage
+				Basil.utils.tryEach(_toStoragesArray(options.storages), function (storage, index) {
+					_storages[storage].set(key, value, options);
+					where = storage;
+					return false; // break;
+				}, null, this);
+				if (!where) {
+					// key has not been set anywhere
+					return false;
+				}
+				// remove key from all other storages
+				Basil.utils.tryEach(_toStoragesArray(options.storages), function (storage, index) {
+					if (storage !== where)
+						_storages[storage].remove(key);
+				}, null, this);
+				return true;
+			},
+			get: function (key, options) {
+				options = Basil.utils.extend({}, this.options, options);
+				if (!(key = _toStoredKey(options.namespace, key)))
+					return null;
+				var value = null;
+				Basil.utils.tryEach(_toStoragesArray(options.storages), function (storage, index) {
+					if (value !== null)
+						return false; // break if a value has already been found.
+					value = _storages[storage].get(key, options) || null;
+					value = options.raw === true ? value : _fromStoredValue(value);
+				}, function (storage, index, error) {
+					value = null;
+				}, this);
+				return value;
+			},
+			remove: function (key, options) {
+				options = Basil.utils.extend({}, this.options, options);
+				if (!(key = _toStoredKey(options.namespace, key)))
+					return;
+				Basil.utils.tryEach(_toStoragesArray(options.storages), function (storage) {
+					_storages[storage].remove(key);
+				}, null, this);
+			},
+			reset: function (options) {
+				options = Basil.utils.extend({}, this.options, options);
+				Basil.utils.tryEach(_toStoragesArray(options.storages), function (storage) {
+					_storages[storage].reset(options.namespace);
+				}, null, this);
+			},
+			keys: function (options) {
+				options = options || {};
+				var keys = [];
+				for (var key in this.keysMap(options))
+					keys.push(key);
+				return keys;
+			},
+			keysMap: function (options) {
+				options = Basil.utils.extend({}, this.options, options);
+				var map = {};
+				Basil.utils.tryEach(_toStoragesArray(options.storages), function (storage) {
+					Basil.utils.each(_storages[storage].keys(options.namespace), function (key) {
+						map[key] = Basil.utils.isArray(map[key]) ? map[key] : [];
+						map[key].push(storage);
+					}, this);
+				}, null, this);
+				return map;
+			}
+		};
+	};
+
+	// Access to native storages, without namespace or basil value decoration
+	Basil.memory = new Basil.Storage().init({ storages: 'memory', namespace: null, raw: true });
+	Basil.cookie = new Basil.Storage().init({ storages: 'cookie', namespace: null, raw: true });
+	Basil.localStorage = new Basil.Storage().init({ storages: 'local', namespace: null, raw: true });
+	Basil.sessionStorage = new Basil.Storage().init({ storages: 'session', namespace: null, raw: true });
+
+	// browser export
+	window.Basil = Basil;
+
+	// AMD export
+	if (typeof define === 'function' && define.amd) {
+		define(function() {
+			return Basil;
+		});
+	// commonjs export
+	} else if (typeof module !== 'undefined' && module.exports) {
+		module.exports = Basil;
+	}
+
+})();
+
+},{}],10:[function(require,module,exports){
+
+},{}],11:[function(require,module,exports){
 /*
  * EJS Embedded JavaScript templates
  * Copyright 2112 Matthew Eernisse (mde@fleegix.org)
@@ -1366,7 +2014,7 @@ if (typeof window != 'undefined') {
   window.ejs = exports;
 }
 
-},{"../package.json":10,"./utils":9,"fs":7,"path":11}],9:[function(require,module,exports){
+},{"../package.json":13,"./utils":12,"fs":10,"path":14}],12:[function(require,module,exports){
 /*
  * EJS Embedded JavaScript templates
  * Copyright 2112 Matthew Eernisse (mde@fleegix.org)
@@ -1532,7 +2180,7 @@ exports.cache = {
   }
 };
 
-},{}],10:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 module.exports={
   "_args": [
     [
@@ -1648,7 +2296,7 @@ module.exports={
   "version": "2.5.7"
 }
 
-},{}],11:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -1876,7 +2524,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require('_process'))
-},{"_process":12}],12:[function(require,module,exports){
+},{"_process":15}],15:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -2062,4 +2710,4 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}]},{},[3]);
+},{}]},{},[4]);

@@ -80,5 +80,23 @@ exports.getID = function(req, res) {
 
 
 exports.getQuiz = function(req, res) {
-   // res.send(Pizza_List);
+
+    var quizAns={
+        nameQuiz:"",
+        quiz:"",
+        time:""
+    }
+
+    Quiz.find({ id: req.body.id }, function(err,quiz){
+        if(quiz[0]!==undefined){
+            quizAns.nameQuiz=quiz[0].quiz.nameQuiz;
+            quizAns.quiz=quiz[0].quiz.quiz;
+            quizAns.time=quiz[0].quiz.time;
+        }
+        //console.log(quiz);
+       // console.log(quizAns);
+       //console.log(false);
+        res.send(quizAns);
+    });
+
 };
