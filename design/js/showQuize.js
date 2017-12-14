@@ -12,10 +12,12 @@ function startQuiz(data){
     setQuizName(data.nameQuiz);
     setQuestion(data.quiz);
 
-    hour = Math.floor(parseInt(data.time)/60);
-    minute =(parseInt( data.time)-(hour*60))-1;
-    setStartTime(parseInt( data.time));
-    intervalID = setTimeout(timer, 1000);
+    if(parseInt(data.time)!=0){
+        hour = Math.floor(parseInt(data.time)/60);
+        minute =(parseInt( data.time)-(hour*60))-1;
+        setStartTime(parseInt( data.time));
+        intervalID = setTimeout(timer, 1000);
+    }
 }
 
 function setQuizName(name){
@@ -201,6 +203,10 @@ $("#endQuize").click(function () {
     alert(localStorage.getItem("NameUser")+" : "+markOfUser);
 });
 
+
+/*$(function(){
+    $("#timer").draggable();
+});*/
 
 
 function timer(){

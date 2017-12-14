@@ -15,24 +15,51 @@ exports.getID = function(req, res) {
         return rand;
     }
 
+    var numberOfID=0;
+    function sendQuiz() {
+        var idQuiz = randomInteger(1000000, 9999999);
+        Quiz.find({id: idQuiz}, function (err, quiz) {
+            numberOfID ++;
+            console.log(quiz);
+            if (quiz.length > 0) {
+                if(numberOfID>8999999){
+                    res.send(String(-1));
+                }else{
+                    sendQuiz();
+                }
+            } else {
+                var newQuiz = new Quiz({
+                    id:idQuiz,
+                    quiz:quiz_info
+                });
+
+                newQuiz.save(function (err, newQz) {
+                    if (err){
+                        console.log("Something goes wrong with quiz" + newQz._id);
+                    }
+                });
+
+                Quiz.find(function (err, allquiz) {
+                    if(err){
+                        console.log("err");
+                    }else{
+                        console.log(allquiz);
+                    }
+                });
+
+                res.send(String(newQuiz.id));
+
+            }
+
+
+        });
+    }
+
 
     if(quiz_info.id==""){
 
-        var idQuiz=randomInteger(1000000, 9999999);
+        sendQuiz();
 
-        var newQuiz = new Quiz({
-            id:idQuiz,
-            quiz:quiz_info
-        });
-
-        newQuiz.save(function (err, newQz) {
-            if (err){
-                console.log("Something goes wrong with user " + newQz._id);
-            }
-        });
-
-
-        res.send(String(newQuiz.id));
     }else{
         Quiz.update(
             { id:	quiz_info.id },
@@ -44,16 +71,6 @@ exports.getID = function(req, res) {
 
 
 
-    /*function getArray() {
-     var idQuiz=randomInteger(1,5);
-     Quiz.find({ name: idQuiz }, function(err,	quiz){
-         console.log(quiz);
-             if(quiz.length>0){
-                 getArray();
-             }
-
-     });
- }*/
 
 
     /*Quiz.find(function (err, allquiz) {
@@ -93,9 +110,6 @@ exports.getQuiz = function(req, res) {
             quizAns.quiz=quiz[0].quiz.quiz;
             quizAns.time=quiz[0].quiz.time;
         }
-        //console.log(quiz);
-       // console.log(quizAns);
-       //console.log(false);
         res.send(quizAns);
     });
 

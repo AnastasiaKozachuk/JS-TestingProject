@@ -301,8 +301,14 @@ $("#getID").click(function () {
         if(err){
             alert("Can't create quiz.");
         }else{
-            ID=data;
-            alert("ID вашого опитування: "+data);
+            console.log(data);
+            if(data=="-1"){
+                alert("Немає вільного ID.");
+            }else{
+                ID=data;
+                alert("ID вашого опитування: "+data);
+            }
+
         }
     });
 });
@@ -408,10 +414,12 @@ function startQuiz(data){
     setQuizName(data.nameQuiz);
     setQuestion(data.quiz);
 
-    hour = Math.floor(parseInt(data.time)/60);
-    minute =(parseInt( data.time)-(hour*60))-1;
-    setStartTime(parseInt( data.time));
-    intervalID = setTimeout(timer, 1000);
+    if(parseInt(data.time)!=0){
+        hour = Math.floor(parseInt(data.time)/60);
+        minute =(parseInt( data.time)-(hour*60))-1;
+        setStartTime(parseInt( data.time));
+        intervalID = setTimeout(timer, 1000);
+    }
 }
 
 function setQuizName(name){
@@ -597,6 +605,10 @@ $("#endQuize").click(function () {
     alert(localStorage.getItem("NameUser")+" : "+markOfUser);
 });
 
+
+/*$(function(){
+    $("#timer").draggable();
+});*/
 
 
 function timer(){
@@ -2250,53 +2262,29 @@ exports.cache = {
 
 },{}],13:[function(require,module,exports){
 module.exports={
-  "_args": [
-    [
-      {
-        "raw": "ejs",
-        "scope": null,
-        "escapedName": "ejs",
-        "name": "ejs",
-        "rawSpec": "",
-        "spec": "latest",
-        "type": "tag"
-      },
-      "C:\\Users\\Anastasiya\\Documents\\GitHub\\JS-TestingProject"
-    ]
-  ],
-  "_from": "ejs@latest",
+  "_from": "ejs@^2.5.7",
   "_id": "ejs@2.5.7",
-  "_inCache": true,
+  "_inBundle": false,
+  "_integrity": "sha1-zIcsFoiArjxxiXYv1f/ACJbJUYo=",
   "_location": "/ejs",
-  "_nodeVersion": "6.9.1",
-  "_npmOperationalInternal": {
-    "host": "s3://npm-registry-packages",
-    "tmp": "tmp/ejs-2.5.7.tgz_1501385411193_0.3807816591579467"
-  },
-  "_npmUser": {
-    "name": "mde",
-    "email": "mde@fleegix.org"
-  },
-  "_npmVersion": "3.10.8",
   "_phantomChildren": {},
   "_requested": {
-    "raw": "ejs",
-    "scope": null,
-    "escapedName": "ejs",
+    "type": "range",
+    "registry": true,
+    "raw": "ejs@^2.5.7",
     "name": "ejs",
-    "rawSpec": "",
-    "spec": "latest",
-    "type": "tag"
+    "escapedName": "ejs",
+    "rawSpec": "^2.5.7",
+    "saveSpec": null,
+    "fetchSpec": "^2.5.7"
   },
   "_requiredBy": [
-    "#DEV:/",
-    "#USER"
+    "#DEV:/"
   ],
   "_resolved": "https://registry.npmjs.org/ejs/-/ejs-2.5.7.tgz",
   "_shasum": "cc872c168880ae3c7189762fd5ffc00896c9518a",
-  "_shrinkwrap": null,
-  "_spec": "ejs",
-  "_where": "C:\\Users\\Anastasiya\\Documents\\GitHub\\JS-TestingProject",
+  "_spec": "ejs@^2.5.7",
+  "_where": "C:\\Users\\Admin\\Documents\\GitHub\\JS-TestingProject",
   "author": {
     "name": "Matthew Eernisse",
     "email": "mde@fleegix.org",
@@ -2305,6 +2293,7 @@ module.exports={
   "bugs": {
     "url": "https://github.com/mde/ejs/issues"
   },
+  "bundleDependencies": false,
   "contributors": [
     {
       "name": "Timothy Gu",
@@ -2313,6 +2302,7 @@ module.exports={
     }
   ],
   "dependencies": {},
+  "deprecated": false,
   "description": "Embedded JavaScript templates",
   "devDependencies": {
     "browserify": "^13.0.1",
@@ -2325,11 +2315,6 @@ module.exports={
     "mocha": "^3.0.2",
     "uglify-js": "^2.6.2"
   },
-  "directories": {},
-  "dist": {
-    "shasum": "cc872c168880ae3c7189762fd5ffc00896c9518a",
-    "tarball": "https://registry.npmjs.org/ejs/-/ejs-2.5.7.tgz"
-  },
   "engines": {
     "node": ">=0.10.0"
   },
@@ -2341,15 +2326,7 @@ module.exports={
   ],
   "license": "Apache-2.0",
   "main": "./lib/ejs.js",
-  "maintainers": [
-    {
-      "name": "mde",
-      "email": "mde@fleegix.org"
-    }
-  ],
   "name": "ejs",
-  "optionalDependencies": {},
-  "readme": "ERROR: No README data found!",
   "repository": {
     "type": "git",
     "url": "git://github.com/mde/ejs.git"

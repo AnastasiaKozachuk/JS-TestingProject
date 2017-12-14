@@ -250,8 +250,14 @@ $("#getID").click(function () {
         if(err){
             alert("Can't create quiz.");
         }else{
-            ID=data;
-            alert("ID вашого опитування: "+data);
+            console.log(data);
+            if(data=="-1"){
+                alert("Немає вільного ID.");
+            }else{
+                ID=data;
+                alert("ID вашого опитування: "+data);
+            }
+
         }
     });
 });
