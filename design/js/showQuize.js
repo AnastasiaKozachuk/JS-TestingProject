@@ -1,14 +1,21 @@
 var Templates = require('./templates');
 
 var markOfUser=0;
+var  intervalID;
 
+var hour=0;
+var minute=0;
+var second =60;
 function startQuiz(data){
 
     console.log(data);
     setQuizName(data.nameQuiz);
     setQuestion(data.quiz);
-    //must be ended
-    setTime(data.time);
+
+    hour = Math.floor(parseInt(data.time)/60);
+    minute =(parseInt( data.time)-(hour*60))-1;
+    setStartTime(parseInt( data.time));
+    intervalID = setTimeout(timer, 1000);
 }
 
 function setQuizName(name){
@@ -190,14 +197,12 @@ function  setTextQuest(objQuest,count){
 
 
 $("#endQuize").click(function () {
-    alert(markOfUser);
+    clearInterval(intervalID);
+    alert(localStorage.getItem("NameUser")+" : "+markOfUser);
 });
 
 
 
-var hour;
-var minute;
-var second =60;
 function timer(){
 
 
@@ -205,11 +210,11 @@ function timer(){
 
         if( second > 0 ) second--;
         else{
-            second = 60;
+            second = 59;
 
             if( minute > 0 ) minute--;
             else{
-                second = 60;
+                second = 59;
 
                 if( hour > 0 ) hour--;
                 else end = true;
@@ -218,19 +223,47 @@ function timer(){
 
         if(end){
             clearInterval(intervalID);
-            alert("Таймер сработал!");
-        }else{
 
+            alert(localStorage.getItem("NameUser")+" : "+markOfUser);
+        }else{
+            setTime();
             setTimeout(timer, 1000);
         }
     }
 
 
+function setTime(){
+    if(hour>=10&&minute>=10&&second>=10){
+        $("#timer").text(hour+" : "+minute+" : "+second);
+    }else if(hour>=10&&minute>=10&&(second>=0&&second<10)){
+        $("#timer").text(hour+" : "+minute+" : 0"+second);
+    }else if(hour>=10&&(minute>=0&&minute<10)&&second>=10){
+        $("#timer").text(hour+" : 0"+minute+" : "+second);
+    } else if(hour>=10&&(minute>=0&&minute<10)&&(second>=0&&second<10)){
+        $("#timer").text(hour+" : 0"+minute+" : 0"+second);
+    }else if((hour>=0&&hour<10)&&minute>=10&&second>=10){
+        $("#timer").text("0"+hour+" : "+minute+" : "+second);
+    }else if((hour>=0&&hour<10)&&minute>=10&&(second>=0&&second<10)){
+        $("#timer").text("0"+hour+" : "+minute+" : 0"+second);
+    }else if((hour>=0&&hour<10)&&(minute>=0&&minute<10)&&second>=10){
+        $("#timer").text("0"+hour+" : 0"+minute+" : "+second);
+    }else if((hour>=0&&hour<10)&&(minute>=0&&minute<10)&&(second>=0&&second<10)){
+        $("#timer").text("0"+hour+" : 0"+minute+" : 0"+second);
+    }
+}
 
-
-function setTime(time){
-    $("#timer").text(time);
-    minutes=time;
+function  setStartTime(time){
+    var hours = Math.floor(time/60);
+    var minutes =(time-(hours*60));
+    if(hours>=10&&minutes>=10){
+        $("#timer").text(hours+" : "+minutes+" : 00");
+    }else if(hours>=10&&(minutes>=0&&minutes<10)){
+        $("#timer").text(hours+" : 0"+minutes+" : 00");
+    } else if((hours>=0&&hours<10)&&minutes>=10){
+        $("#timer").text("0"+hours+" : "+minutes+" : 00");
+    }else if((hours>=0&&hours<10)&&(minutes>=0&&minutes<10)){
+        $("#timer").text("0"+hours+" : 0"+minutes+" : 00");
+    }
 }
 
 exports.startQuiz = startQuiz;
