@@ -11,10 +11,11 @@ function startQuiz(data){
     console.log(data);
     setQuizName(data.nameQuiz);
     setQuestion(data.quiz);
-
-    if(parseInt(data.time)!=0){
+    if(parseInt(data.time)!=0&&(data.time.trim()!="")){
         hour = Math.floor(parseInt(data.time)/60);
         minute =(parseInt( data.time)-(hour*60))-1;
+        $("#timer").css("display","block");
+        $("#timer").draggable();
         setStartTime(parseInt( data.time));
         intervalID = setTimeout(timer, 1000);
     }
@@ -41,13 +42,7 @@ function  setQuestion(questionArray){
 
 
 
-function getLenght(object){
-    var i=0;
-    for(var key in  object){
-        i++;
-    }
-    return i;
-}
+
 
 function setCheckboxQuest(objQuest,count){
     var $answer = $(Templates.Answers_Template());
@@ -55,11 +50,84 @@ function setCheckboxQuest(objQuest,count){
     $answer.find("#answersName").text(objQuest.questionName);
     $answer.find("#answerMark").text(objQuest.mark+" б.");
 
+    var arrayRightAns={};
 
+    var counter=0;
     for(var key in  objQuest.answers){
-        addVariantCheckBox(key, $answer,count,objQuest);
+        addVariantCheckBox(key,counter);
+        counter++;
     }
 
+
+
+    function addVariantCheckBox(key,counter){
+        var $checkQs =$(Templates.Checkbox_Template());
+        var nameAttrib = String($checkQs.find("#checkboxAns").attr("name"))+count;
+        $checkQs.find("#checkboxAns").attr("name",nameAttrib);
+        $checkQs.find("#variantCheckBox").text(objQuest.answers[key]);
+        $answer.find("#answersArea").append($checkQs);
+
+        var keyRight =nameAttrib+counter;
+
+        $checkQs.find("#checkboxAns").change(function () {
+            if(this.checked){
+                arrayRightAns[keyRight]=String($checkQs.find("#variantCheckBox").text());
+
+                if (allrightanswers( arrayRightAns,objQuest.correctAnswers)&&$answer.find("#answersArea").attr("answer")=="no") {
+                    markOfUser+= parseInt(objQuest.mark);
+                    $answer.find("#answersArea").attr("answer","yes");
+                }
+
+                if (!(allrightanswers( arrayRightAns,objQuest.correctAnswers))&&$answer.find("#answersArea").attr("answer")=="yes") {
+                    markOfUser-= parseInt(objQuest.mark);
+                    $answer.find("#answersArea").attr("answer","no");
+                }
+
+            }
+            else{
+
+                delete  arrayRightAns[keyRight];
+
+                if ( allrightanswers( arrayRightAns,objQuest.correctAnswers)&&($answer.find("#answersArea").attr("answer")=="no")) {
+                    markOfUser+= parseInt(objQuest.mark);
+                    $answer.find("#answersArea").attr("answer","yes");
+                }
+
+                if (!(allrightanswers( arrayRightAns,objQuest.correctAnswers))&&$answer.find("#answersArea").attr("answer")=="yes") {
+                    markOfUser-= parseInt(objQuest.mark);
+                    $answer.find("#answersArea").attr("answer","no");
+                }
+
+            }
+            console.log(markOfUser);
+        });
+    }
+
+
+
+    function allrightanswers(arrayRightAns,rightAns){
+        var lenPossible=getLenght(arrayRightAns);
+        var lenRighr=getLenght(rightAns);
+        var equal=false;
+        var number=0;
+        if(lenPossible!=lenRighr){
+            equal=false;
+        }else{
+            for(var i in rightAns){
+                for(var j in arrayRightAns){
+                    if(rightAns[i]==arrayRightAns[j]){
+                        number++;
+                    }
+                }
+            }
+
+            if(number==lenRighr){
+                equal=true;
+            }
+
+        }
+        return equal;
+    }
 
 
     $("#main-show").append($answer);
@@ -68,27 +136,14 @@ function setCheckboxQuest(objQuest,count){
 
 
 
-function addVariantCheckBox(key, $answer,count,objQuest){
-    var $checkQs =$(Templates.Checkbox_Template());
-    var numberOfCorAnsvers = getLenght(objQuest.correctAnswers);
-    var nameAttrib = String($checkQs.find("#checkboxAns").attr("name"))+count;
-    $checkQs.find("#checkboxAns").attr("name",nameAttrib);
-    $checkQs.find("#variantCheckBox").text(objQuest.answers[key]);
-    $answer.find("#answersArea").append($checkQs);
 
-    $checkQs.find("#checkboxAns").change(function () {
-        if(this.checked){
-            if ( existInObject($checkQs.find("#variantCheckBox").text(),objQuest.correctAnswers)) {
-                markOfUser+= objQuest.mark/numberOfCorAnsvers;
-            }
-        }
-        else{
-            if ( existInObject($checkQs.find("#variantCheckBox").text(),objQuest.correctAnswers)) {
-                markOfUser-= objQuest.mark/numberOfCorAnsvers;
-            }
-        }
-        console.log(markOfUser);
-    });
+
+function getLenght(object){
+    var i=0;
+    for(var key in  object){
+        i++;
+    }
+    return i;
 }
 
 
@@ -175,10 +230,10 @@ function  setTextQuest(objQuest,count){
 
     $textQs.find("#textVariantAns").focusout(function () {
 
-        if(existInObject($textQs.find("#textVariantAns").val(),objQuest.correctAnswers)&&$answer.find("#answersArea").attr("answer")=="no"){
+        if(existInObject($textQs.find("#textVariantAns").val().toLowerCase(),objQuest.correctAnswers)&&$answer.find("#answersArea").attr("answer")=="no"){
             markOfUser+= parseInt(objQuest.mark);
             $answer.find("#answersArea").attr("answer","yes");
-        }else if(!existInObject($textQs.find("#textVariantAns").val(),objQuest.correctAnswers)&&$answer.find("#answersArea").attr("answer")=="yes"){
+        }else if(!existInObject($textQs.find("#textVariantAns").val().toLowerCase(),objQuest.correctAnswers)&&$answer.find("#answersArea").attr("answer")=="yes"){
             markOfUser-= parseInt(objQuest.mark);
             $answer.find("#answersArea").attr("answer","no");
         }
@@ -197,22 +252,17 @@ function  setTextQuest(objQuest,count){
 }
 
 
+var end = false;
 
 $("#endQuize").click(function () {
-    clearInterval(intervalID);
-    alert(localStorage.getItem("NameUser")+" : "+markOfUser);
+    end=true;
 });
 
-
-/*$(function(){
-    $("#timer").draggable();
-});*/
 
 
 function timer(){
 
 
-        var end = false;
 
         if( second > 0 ) second--;
         else{

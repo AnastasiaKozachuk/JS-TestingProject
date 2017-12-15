@@ -28,10 +28,17 @@ var show = require("./showQuize");
 var create = require("./createQuiz");
 var Storage = require('./Storage');
 $(document).ready(function() {
-    create.initializeQuize();
-    var saved_data = Storage.read("quizData");
-    if(saved_data){
-        show.startQuiz(saved_data);
+    if("http://localhost:5050/create-page.html"==window.location.href){
+        create.initializeQuize();
     }
+   if("http://localhost:5050/showQuize.html"==window.location.href){
+       var saved_data = Storage.read("quizData");
+       if(saved_data){
+           show.startQuiz(saved_data);
+       }
+   }
 
 });
+
+
+

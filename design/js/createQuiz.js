@@ -187,7 +187,7 @@ function addvariant($node,questionStructure,counts){
         });
 
         $variant.find("#textVariantQuest").keyup(function () {
-            setRightVariantQs($variant.find("#textVariantQuest").val(),questionStructure,num);
+            setRightVariantQs($variant.find("#textVariantQuest").val().toLowerCase(),questionStructure,num);
             resizeLeftside($($node.find(".right-side")[0]));
         });
 
@@ -246,20 +246,31 @@ var ID="";
 
 
 $("#getID").click(function () {
+    var window= $(Templates.Window_ID());
     getID(function (err, data) {
         if(err){
             alert("Can't create quiz.");
         }else{
             console.log(data);
+
             if(data=="-1"){
-                alert("Немає вільного ID.");
+                window.find("#setID").text("Немає вільного ID");
+                $("body").append(window);
             }else{
                 ID=data;
-                alert("ID вашого опитування: "+data);
+                window.find("#setID").text(data);
+                $("body").append(window);
             }
+
+
 
         }
     });
+        window.find("button").click(function () {
+
+            window.hide();
+        });
+
 });
 
 

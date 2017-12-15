@@ -8,4 +8,6 @@ exports.Answers_Template = ejs.compile(fs.readFileSync('./design/ejs/answersTemp
 exports.Checkbox_Template = ejs.compile(fs.readFileSync('./design/ejs/checkboxAnsTemp.ejs', "utf8"));
 exports.Radio_Template = ejs.compile(fs.readFileSync('./design/ejs/radioAnsTemp.ejs', "utf8"));
 exports.Text_Template = ejs.compile(fs.readFileSync('./design/ejs/textAnsTemp.ejs', "utf8"));
+exports.Window_ID = ejs.compile(fs.readFileSync('./design/ejs/windowID.ejs', "utf8"));
+exports.Window_Mark = ejs.compile(fs.readFileSync('./design/ejs/windowMark.ejs', "utf8"));
 

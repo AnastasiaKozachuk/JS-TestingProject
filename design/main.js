@@ -238,7 +238,7 @@ function addvariant($node,questionStructure,counts){
         });
 
         $variant.find("#textVariantQuest").keyup(function () {
-            setRightVariantQs($variant.find("#textVariantQuest").val(),questionStructure,num);
+            setRightVariantQs($variant.find("#textVariantQuest").val().toLowerCase(),questionStructure,num);
             resizeLeftside($($node.find(".right-side")[0]));
         });
 
@@ -297,20 +297,31 @@ var ID="";
 
 
 $("#getID").click(function () {
+    var window= $(Templates.Window_ID());
     getID(function (err, data) {
         if(err){
             alert("Can't create quiz.");
         }else{
             console.log(data);
+
             if(data=="-1"){
-                alert("Немає вільного ID.");
+                window.find("#setID").text("Немає вільного ID");
+                $("body").append(window);
             }else{
                 ID=data;
-                alert("ID вашого опитування: "+data);
+                window.find("#setID").text(data);
+                $("body").append(window);
             }
+
+
 
         }
     });
+        window.find("button").click(function () {
+
+            window.hide();
+        });
+
 });
 
 
@@ -367,13 +378,20 @@ var show = require("./showQuize");
 var create = require("./createQuiz");
 var Storage = require('./Storage');
 $(document).ready(function() {
-    create.initializeQuize();
-    var saved_data = Storage.read("quizData");
-    if(saved_data){
-        show.startQuiz(saved_data);
+    if("http://localhost:5050/create-page.html"==window.location.href){
+        create.initializeQuize();
     }
+   if("http://localhost:5050/showQuize.html"==window.location.href){
+       var saved_data = Storage.read("quizData");
+       if(saved_data){
+           show.startQuiz(saved_data);
+       }
+   }
 
 });
+
+
+
 
 },{"./Storage":2,"./createQuiz":3,"./resizeTextarea":5,"./showQuize":6,"./switcher":7}],5:[function(require,module,exports){
 function textAreaHeight(textarea) {
@@ -413,10 +431,11 @@ function startQuiz(data){
     console.log(data);
     setQuizName(data.nameQuiz);
     setQuestion(data.quiz);
-
-    if(parseInt(data.time)!=0){
+    if(parseInt(data.time)!=0&&(data.time.trim()!="")){
         hour = Math.floor(parseInt(data.time)/60);
         minute =(parseInt( data.time)-(hour*60))-1;
+        $("#timer").css("display","block");
+        $("#timer").draggable();
         setStartTime(parseInt( data.time));
         intervalID = setTimeout(timer, 1000);
     }
@@ -443,13 +462,7 @@ function  setQuestion(questionArray){
 
 
 
-function getLenght(object){
-    var i=0;
-    for(var key in  object){
-        i++;
-    }
-    return i;
-}
+
 
 function setCheckboxQuest(objQuest,count){
     var $answer = $(Templates.Answers_Template());
@@ -457,11 +470,84 @@ function setCheckboxQuest(objQuest,count){
     $answer.find("#answersName").text(objQuest.questionName);
     $answer.find("#answerMark").text(objQuest.mark+" б.");
 
+    var arrayRightAns={};
 
+    var counter=0;
     for(var key in  objQuest.answers){
-        addVariantCheckBox(key, $answer,count,objQuest);
+        addVariantCheckBox(key,counter);
+        counter++;
     }
 
+
+
+    function addVariantCheckBox(key,counter){
+        var $checkQs =$(Templates.Checkbox_Template());
+        var nameAttrib = String($checkQs.find("#checkboxAns").attr("name"))+count;
+        $checkQs.find("#checkboxAns").attr("name",nameAttrib);
+        $checkQs.find("#variantCheckBox").text(objQuest.answers[key]);
+        $answer.find("#answersArea").append($checkQs);
+
+        var keyRight =nameAttrib+counter;
+
+        $checkQs.find("#checkboxAns").change(function () {
+            if(this.checked){
+                arrayRightAns[keyRight]=String($checkQs.find("#variantCheckBox").text());
+
+                if (allrightanswers( arrayRightAns,objQuest.correctAnswers)&&$answer.find("#answersArea").attr("answer")=="no") {
+                    markOfUser+= parseInt(objQuest.mark);
+                    $answer.find("#answersArea").attr("answer","yes");
+                }
+
+                if (!(allrightanswers( arrayRightAns,objQuest.correctAnswers))&&$answer.find("#answersArea").attr("answer")=="yes") {
+                    markOfUser-= parseInt(objQuest.mark);
+                    $answer.find("#answersArea").attr("answer","no");
+                }
+
+            }
+            else{
+
+                delete  arrayRightAns[keyRight];
+
+                if ( allrightanswers( arrayRightAns,objQuest.correctAnswers)&&($answer.find("#answersArea").attr("answer")=="no")) {
+                    markOfUser+= parseInt(objQuest.mark);
+                    $answer.find("#answersArea").attr("answer","yes");
+                }
+
+                if (!(allrightanswers( arrayRightAns,objQuest.correctAnswers))&&$answer.find("#answersArea").attr("answer")=="yes") {
+                    markOfUser-= parseInt(objQuest.mark);
+                    $answer.find("#answersArea").attr("answer","no");
+                }
+
+            }
+            console.log(markOfUser);
+        });
+    }
+
+
+
+    function allrightanswers(arrayRightAns,rightAns){
+        var lenPossible=getLenght(arrayRightAns);
+        var lenRighr=getLenght(rightAns);
+        var equal=false;
+        var number=0;
+        if(lenPossible!=lenRighr){
+            equal=false;
+        }else{
+            for(var i in rightAns){
+                for(var j in arrayRightAns){
+                    if(rightAns[i]==arrayRightAns[j]){
+                        number++;
+                    }
+                }
+            }
+
+            if(number==lenRighr){
+                equal=true;
+            }
+
+        }
+        return equal;
+    }
 
 
     $("#main-show").append($answer);
@@ -470,27 +556,14 @@ function setCheckboxQuest(objQuest,count){
 
 
 
-function addVariantCheckBox(key, $answer,count,objQuest){
-    var $checkQs =$(Templates.Checkbox_Template());
-    var numberOfCorAnsvers = getLenght(objQuest.correctAnswers);
-    var nameAttrib = String($checkQs.find("#checkboxAns").attr("name"))+count;
-    $checkQs.find("#checkboxAns").attr("name",nameAttrib);
-    $checkQs.find("#variantCheckBox").text(objQuest.answers[key]);
-    $answer.find("#answersArea").append($checkQs);
 
-    $checkQs.find("#checkboxAns").change(function () {
-        if(this.checked){
-            if ( existInObject($checkQs.find("#variantCheckBox").text(),objQuest.correctAnswers)) {
-                markOfUser+= objQuest.mark/numberOfCorAnsvers;
-            }
-        }
-        else{
-            if ( existInObject($checkQs.find("#variantCheckBox").text(),objQuest.correctAnswers)) {
-                markOfUser-= objQuest.mark/numberOfCorAnsvers;
-            }
-        }
-        console.log(markOfUser);
-    });
+
+function getLenght(object){
+    var i=0;
+    for(var key in  object){
+        i++;
+    }
+    return i;
 }
 
 
@@ -577,10 +650,10 @@ function  setTextQuest(objQuest,count){
 
     $textQs.find("#textVariantAns").focusout(function () {
 
-        if(existInObject($textQs.find("#textVariantAns").val(),objQuest.correctAnswers)&&$answer.find("#answersArea").attr("answer")=="no"){
+        if(existInObject($textQs.find("#textVariantAns").val().toLowerCase(),objQuest.correctAnswers)&&$answer.find("#answersArea").attr("answer")=="no"){
             markOfUser+= parseInt(objQuest.mark);
             $answer.find("#answersArea").attr("answer","yes");
-        }else if(!existInObject($textQs.find("#textVariantAns").val(),objQuest.correctAnswers)&&$answer.find("#answersArea").attr("answer")=="yes"){
+        }else if(!existInObject($textQs.find("#textVariantAns").val().toLowerCase(),objQuest.correctAnswers)&&$answer.find("#answersArea").attr("answer")=="yes"){
             markOfUser-= parseInt(objQuest.mark);
             $answer.find("#answersArea").attr("answer","no");
         }
@@ -599,22 +672,17 @@ function  setTextQuest(objQuest,count){
 }
 
 
+var end = false;
 
 $("#endQuize").click(function () {
-    clearInterval(intervalID);
-    alert(localStorage.getItem("NameUser")+" : "+markOfUser);
+    end=true;
 });
 
-
-/*$(function(){
-    $("#timer").draggable();
-});*/
 
 
 function timer(){
 
 
-        var end = false;
 
         if( second > 0 ) second--;
         else{
@@ -834,6 +902,8 @@ exports.Answers_Template = ejs.compile("<div class=\"container variantAns\" styl
 exports.Checkbox_Template = ejs.compile("<div class=\"row\" style=\"margin-top: 5px;margin-bottom: 5px;\">\r\n    <div class=\"col-xs-1\" ></div>\r\n    <div class=\"col-xs-1\" style=\"text-align: right; \" >  <input type=\"checkbox\"  id =\"checkboxAns\" name=\"variantcheckbox\" style=\"width:25px; height: 25px;   \"> </div>\r\n    <div class=\"col-xs-10\" style=\"padding-top: 3px;\" id=\"variantCheckBox\">Варіант відповіді 1</div>\r\n</div>\r\n");
 exports.Radio_Template = ejs.compile("<div class=\"row\" style=\"margin-top: 5px;margin-bottom: 5px;\">\r\n    <div class=\"col-xs-1\" ></div>\r\n    <div class=\"col-xs-1\" style=\"text-align: right; \" >  <input type=\"radio\"  id =\"radioAns\" name=\"variantradio\" style=\"width:25px; height: 25px;   \"> </div>\r\n    <div class=\"col-xs-10\" id=\"variantRadio\" style=\"padding-top: 3px;\">Варіант відповіді 1</div>\r\n</div>");
 exports.Text_Template = ejs.compile("<div class=\"row\" style=\"margin-bottom: 20px;margin-top: 10px;\" >\r\n    <div class=\"col-xs-1\"></div>\r\n    <div class=\"col-xs-10\"><textarea id=\"textVariantAns\" name=\"textAnswer\" style=\" overflow-y :hidden;outline: none;border:0; width: 100%; resize: none; \" placeholder=\"Введіть відповідь\" rows=\"1\" wrap=\"hard\" ></textarea></div>\r\n</div>");
+exports.Window_ID = ejs.compile("<div id=\"windowID\">\r\n    <div class=\"windowGetID\">\r\n        <div style=\"font-size: 23px;font-family: Arial; padding-top: 15px; padding-bottom: 10px; \">ID вашого опитування</div>\r\n        <div id=\"setID\" style=\"font-size: 20px;font-family: Arial; padding-top: 25px; padding-bottom: 25px; background-color: rgba(166,166,166,0.46);\">67777789</div>\r\n        <div  style=\"padding-top: 15px;\">\r\n            <button type=\"button\" >Добре</button>\r\n        </div>\r\n    </div> </div>");
+exports.Window_Mark = ejs.compile("<div id=\"windowMark\">\r\n    <div class=\"windowGetMark\">\r\n        <div style=\"font-size: 23px;font-family: Arial; padding-top: 15px; padding-bottom: 10px; \">Ім'я</div>\r\n        <div  style=\"font-size: 20px;font-family: Arial; padding-top: 25px; padding-bottom: 25px; background-color: rgba(166,166,166,0.46);\">Кількість балів</div>\r\n        <div  style=\"padding-top: 15px;\">\r\n            <button type=\"button\" >Добре</button>\r\n        </div>\r\n    </div> </div>");
 
 
 },{"ejs":11}],9:[function(require,module,exports){
@@ -2262,29 +2332,53 @@ exports.cache = {
 
 },{}],13:[function(require,module,exports){
 module.exports={
-  "_from": "ejs@^2.5.7",
+  "_args": [
+    [
+      {
+        "raw": "ejs",
+        "scope": null,
+        "escapedName": "ejs",
+        "name": "ejs",
+        "rawSpec": "",
+        "spec": "latest",
+        "type": "tag"
+      },
+      "C:\\Users\\Anastasiya\\Documents\\GitHub\\JS-TestingProject"
+    ]
+  ],
+  "_from": "ejs@latest",
   "_id": "ejs@2.5.7",
-  "_inBundle": false,
-  "_integrity": "sha1-zIcsFoiArjxxiXYv1f/ACJbJUYo=",
+  "_inCache": true,
   "_location": "/ejs",
+  "_nodeVersion": "6.9.1",
+  "_npmOperationalInternal": {
+    "host": "s3://npm-registry-packages",
+    "tmp": "tmp/ejs-2.5.7.tgz_1501385411193_0.3807816591579467"
+  },
+  "_npmUser": {
+    "name": "mde",
+    "email": "mde@fleegix.org"
+  },
+  "_npmVersion": "3.10.8",
   "_phantomChildren": {},
   "_requested": {
-    "type": "range",
-    "registry": true,
-    "raw": "ejs@^2.5.7",
-    "name": "ejs",
+    "raw": "ejs",
+    "scope": null,
     "escapedName": "ejs",
-    "rawSpec": "^2.5.7",
-    "saveSpec": null,
-    "fetchSpec": "^2.5.7"
+    "name": "ejs",
+    "rawSpec": "",
+    "spec": "latest",
+    "type": "tag"
   },
   "_requiredBy": [
-    "#DEV:/"
+    "#DEV:/",
+    "#USER"
   ],
   "_resolved": "https://registry.npmjs.org/ejs/-/ejs-2.5.7.tgz",
   "_shasum": "cc872c168880ae3c7189762fd5ffc00896c9518a",
-  "_spec": "ejs@^2.5.7",
-  "_where": "C:\\Users\\Admin\\Documents\\GitHub\\JS-TestingProject",
+  "_shrinkwrap": null,
+  "_spec": "ejs",
+  "_where": "C:\\Users\\Anastasiya\\Documents\\GitHub\\JS-TestingProject",
   "author": {
     "name": "Matthew Eernisse",
     "email": "mde@fleegix.org",
@@ -2293,7 +2387,6 @@ module.exports={
   "bugs": {
     "url": "https://github.com/mde/ejs/issues"
   },
-  "bundleDependencies": false,
   "contributors": [
     {
       "name": "Timothy Gu",
@@ -2302,7 +2395,6 @@ module.exports={
     }
   ],
   "dependencies": {},
-  "deprecated": false,
   "description": "Embedded JavaScript templates",
   "devDependencies": {
     "browserify": "^13.0.1",
@@ -2315,6 +2407,11 @@ module.exports={
     "mocha": "^3.0.2",
     "uglify-js": "^2.6.2"
   },
+  "directories": {},
+  "dist": {
+    "shasum": "cc872c168880ae3c7189762fd5ffc00896c9518a",
+    "tarball": "https://registry.npmjs.org/ejs/-/ejs-2.5.7.tgz"
+  },
   "engines": {
     "node": ">=0.10.0"
   },
@@ -2326,7 +2423,15 @@ module.exports={
   ],
   "license": "Apache-2.0",
   "main": "./lib/ejs.js",
+  "maintainers": [
+    {
+      "name": "mde",
+      "email": "mde@fleegix.org"
+    }
+  ],
   "name": "ejs",
+  "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
   "repository": {
     "type": "git",
     "url": "git://github.com/mde/ejs.git"
