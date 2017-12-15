@@ -377,16 +377,27 @@ $(function() {
 var show = require("./showQuize");
 var create = require("./createQuiz");
 var Storage = require('./Storage');
+
 $(document).ready(function() {
     if("http://localhost:5050/create-page.html"==window.location.href){
         create.initializeQuize();
     }
-   if("http://localhost:5050/showQuize.html"==window.location.href){
+   if("http://localhost:5050/showQuize.html"==window.location.href&&(Storage.read("started")==false)&&(Storage.read("finished")==false)){
        var saved_data = Storage.read("quizData");
+       Storage.write("started",true);
        if(saved_data){
            show.startQuiz(saved_data);
        }
+   }else if("http://localhost:5050/showQuize.html"==window.location.href&&(Storage.read("started")==true)&&(Storage.read("finished")==false)){
+       var saved_data = Storage.read("quizData");
+       show.recoverQuiz(saved_data);
+   }else if("http://localhost:5050/showQuize.html"==window.location.href&&(Storage.read("finished")==true)){
+       console.log("-");
+       show.quizEnded();
    }
+
+
+
 
 });
 
@@ -419,13 +430,15 @@ function textAreaHeight(textarea) {
 exports.textAreaHeight=textAreaHeight;
 },{}],6:[function(require,module,exports){
 var Templates = require('./templates');
-
+var Storage = require('./Storage');
+var main_page ="http://localhost:5050" ;
 var markOfUser=0;
 var  intervalID;
 
 var hour=0;
 var minute=0;
 var second =60;
+var timerExisting=false;
 function startQuiz(data){
 
     console.log(data);
@@ -436,9 +449,33 @@ function startQuiz(data){
         minute =(parseInt( data.time)-(hour*60))-1;
         $("#timer").css("display","block");
         $("#timer").draggable();
+        timerExisting=true;
         setStartTime(parseInt( data.time));
         intervalID = setTimeout(timer, 1000);
     }
+}
+
+
+function recoverQuiz(data){
+    console.log(data);
+    setQuizName(data.nameQuiz);
+    setQuestion(data.quiz);
+    if(parseInt(data.time)!=0&&(data.time.trim()!="")){
+        hour= Storage.read("hour");
+        minute= Storage.read("minute");
+        second= Storage.read("second");
+        $("#timer").css("display","block");
+        $("#timer").draggable();
+        timerExisting=true;
+        setTime();
+        intervalID = setTimeout(timer, 1000);
+    }
+}
+
+function quizEnded() {
+    window.find("#nameUserWindow").text(localStorage.getItem("NameUser"));
+    window.find("#markUserWindow").text("Опитування завершено: "+Storage.read("markOfUser")+" б.");
+    $("body").append(window);
 }
 
 function setQuizName(name){
@@ -675,9 +712,25 @@ function  setTextQuest(objQuest,count){
 var end = false;
 
 $("#endQuize").click(function () {
-    end=true;
+    if(timerExisting){
+        end=true;
+    }else{
+        window.find("#nameUserWindow").text(localStorage.getItem("NameUser"));
+        window.find("#markUserWindow").text(markOfUser + " б.");
+        $("body").append(window);
+    }
 });
+var window= $(Templates.Window_Mark());
+$("#backToMainFromShow").click(function(){
+    if(timerExisting){
+        end=true;
+    }else{
+        window.find("#nameUserWindow").text(localStorage.getItem("NameUser"));
+        window.find("#markUserWindow").text(markOfUser + " б.");
+        $("body").append(window);
+    }
 
+});
 
 
 function timer(){
@@ -699,14 +752,25 @@ function timer(){
 
         if(end){
             clearInterval(intervalID);
+            window.find("#nameUserWindow").text(localStorage.getItem("NameUser"));
+            window.find("#markUserWindow").text(markOfUser + " б.");
+            $("body").append(window);
 
-            alert(localStorage.getItem("NameUser")+" : "+markOfUser);
         }else{
+            Storage.write("hour",hour);
+            Storage.write("minute",minute);
+            Storage.write("second",second);
             setTime();
             setTimeout(timer, 1000);
         }
     }
 
+window.find("button").click(function () {
+    Storage.write("markOfUser",markOfUser);
+    Storage.write("finished",true);
+    window.hide();
+    location.href = main_page;
+});
 
 function setTime(){
     if(hour>=10&&minute>=10&&second>=10){
@@ -743,7 +807,9 @@ function  setStartTime(time){
 }
 
 exports.startQuiz = startQuiz;
-},{"./templates":8}],7:[function(require,module,exports){
+exports.recoverQuiz = recoverQuiz;
+exports.quizEnded=quizEnded;
+},{"./Storage":2,"./templates":8}],7:[function(require,module,exports){
 
 var Storage = require('./Storage');
 var API = require('../API');
@@ -767,24 +833,32 @@ function start() {
         $("#rowOne").show();
         $("#rowTwo").hide();
         $("#rowThree").hide();
+        $("#rowOne").attr("pressed","yes");
+        $("#rowTwo").attr("pressed","no");
+        $("#rowThree").attr("pressed","no");
         $("#switch1").css("background-color","#1d1a21");
         $("#switch2").css("background-color","#392d40");
         $("#switch3").css("background-color","#392d40");
         $("#switch1").removeClass("switcherStyle");
         $("#switch2").addClass("switcherStyle");
         $("#switch3").addClass("switcherStyle");
+
     });
 
     $("#switch2").click(function () {
         $("#rowOne").hide();
         $("#rowTwo").show();
         $("#rowThree").hide();
+        $("#rowOne").attr("pressed","no");
+        $("#rowTwo").attr("pressed","yes");
+        $("#rowThree").attr("pressed","no");
         $("#switch1").css("background-color","#392d40");
         $("#switch2").css("background-color","#1d1a21");
         $("#switch3").css("background-color","#392d40");
         $("#switch2").removeClass("switcherStyle");
         $("#switch1").addClass("switcherStyle");
         $("#switch3").addClass("switcherStyle");
+
     });
 
 
@@ -792,12 +866,16 @@ function start() {
         $("#rowOne").hide();
         $("#rowTwo").hide();
         $("#rowThree").show();
+        $("#rowOne").attr("pressed","no");
+        $("#rowTwo").attr("pressed","no");
+        $("#rowThree").attr("pressed","yes");
         $("#switch1").css("background-color","#392d40");
         $("#switch2").css("background-color","#392d40");
         $("#switch3").css("background-color","#1d1a21");
         $("#switch3").removeClass("switcherStyle");
         $("#switch2").addClass("switcherStyle");
         $("#switch1").addClass("switcherStyle");
+
     });
 
 
@@ -828,14 +906,16 @@ function start() {
 
     $("#nextStep").click(function(){
 
-        if($("#nameQzCreate").val()!=""&&$("#passwordQz1").val()!=""){
+
+
+        if($("#nameQzCreate").val()!=""&&$("#passwordQz1").val()!=""&& ($("#rowOne").attr("pressed")=="yes")){
             localStorage.setItem("nameQuiz", nameQz);
             localStorage.setItem("password", password);
             location.href = order_page;
-        }else if($("#idChange").val()!=""&&$("#passwordQz2").val()!=""){
+        }else if($("#idChange").val()!=""&&$("#passwordQz2").val()!="" && ($("#rowTwo").attr("pressed")=="yes")){
             localStorage.setItem("IDchange", info_IDChanged);
             localStorage.setItem("password", password);
-        }else if($("#nameUser").val()!=""&&$("#idPassed").val()!=""){
+        }else if($("#nameUser").val()!=""&&$("#idPassed").val()!="" && ($("#rowThree").attr("pressed")=="yes")){
             localStorage.setItem("NameUser",  info_userName);
             localStorage.setItem("IDPassed", info_IDPassed);
 
@@ -851,6 +931,8 @@ function start() {
                     }
                     console.log(quizData);
                     if(quizData.nameQuiz!=""||quizData.quiz!=""||quizData.time!=""){
+                        Storage.write("started",false);
+                        Storage.write("finished",false);
                         Storage.write("quizData",quizData);
                         location.href = showQuize;
                     }else{
@@ -903,7 +985,7 @@ exports.Checkbox_Template = ejs.compile("<div class=\"row\" style=\"margin-top: 
 exports.Radio_Template = ejs.compile("<div class=\"row\" style=\"margin-top: 5px;margin-bottom: 5px;\">\r\n    <div class=\"col-xs-1\" ></div>\r\n    <div class=\"col-xs-1\" style=\"text-align: right; \" >  <input type=\"radio\"  id =\"radioAns\" name=\"variantradio\" style=\"width:25px; height: 25px;   \"> </div>\r\n    <div class=\"col-xs-10\" id=\"variantRadio\" style=\"padding-top: 3px;\">Варіант відповіді 1</div>\r\n</div>");
 exports.Text_Template = ejs.compile("<div class=\"row\" style=\"margin-bottom: 20px;margin-top: 10px;\" >\r\n    <div class=\"col-xs-1\"></div>\r\n    <div class=\"col-xs-10\"><textarea id=\"textVariantAns\" name=\"textAnswer\" style=\" overflow-y :hidden;outline: none;border:0; width: 100%; resize: none; \" placeholder=\"Введіть відповідь\" rows=\"1\" wrap=\"hard\" ></textarea></div>\r\n</div>");
 exports.Window_ID = ejs.compile("<div id=\"windowID\">\r\n    <div class=\"windowGetID\">\r\n        <div style=\"font-size: 23px;font-family: Arial; padding-top: 15px; padding-bottom: 10px; \">ID вашого опитування</div>\r\n        <div id=\"setID\" style=\"font-size: 20px;font-family: Arial; padding-top: 25px; padding-bottom: 25px; background-color: rgba(166,166,166,0.46);\">67777789</div>\r\n        <div  style=\"padding-top: 15px;\">\r\n            <button type=\"button\" >Добре</button>\r\n        </div>\r\n    </div> </div>");
-exports.Window_Mark = ejs.compile("<div id=\"windowMark\">\r\n    <div class=\"windowGetMark\">\r\n        <div style=\"font-size: 23px;font-family: Arial; padding-top: 15px; padding-bottom: 10px; \">Ім'я</div>\r\n        <div  style=\"font-size: 20px;font-family: Arial; padding-top: 25px; padding-bottom: 25px; background-color: rgba(166,166,166,0.46);\">Кількість балів</div>\r\n        <div  style=\"padding-top: 15px;\">\r\n            <button type=\"button\" >Добре</button>\r\n        </div>\r\n    </div> </div>");
+exports.Window_Mark = ejs.compile("<div id=\"windowMark\">\r\n    <div class=\"windowGetMark\">\r\n        <div id=\"nameUserWindow\" style=\"font-size: 23px;font-family: Arial; padding-top: 15px; padding-bottom: 10px; \">Ім'я</div>\r\n        <div  id=\"markUserWindow\"style=\"font-size: 20px;font-family: Arial; padding-top: 25px; padding-bottom: 25px; background-color: rgba(166,166,166,0.46);\">Кількість балів</div>\r\n        <div  style=\"padding-top: 15px;\">\r\n            <button type=\"button\" >Добре</button>\r\n        </div>\r\n    </div> </div>");
 
 
 },{"ejs":11}],9:[function(require,module,exports){

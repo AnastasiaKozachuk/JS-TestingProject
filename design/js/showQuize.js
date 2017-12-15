@@ -1,11 +1,13 @@
 var Templates = require('./templates');
-
+var Storage = require('./Storage');
+var main_page ="http://localhost:5050" ;
 var markOfUser=0;
 var  intervalID;
 
 var hour=0;
 var minute=0;
 var second =60;
+var timerExisting=false;
 function startQuiz(data){
 
     console.log(data);
@@ -16,9 +18,33 @@ function startQuiz(data){
         minute =(parseInt( data.time)-(hour*60))-1;
         $("#timer").css("display","block");
         $("#timer").draggable();
+        timerExisting=true;
         setStartTime(parseInt( data.time));
         intervalID = setTimeout(timer, 1000);
     }
+}
+
+
+function recoverQuiz(data){
+    console.log(data);
+    setQuizName(data.nameQuiz);
+    setQuestion(data.quiz);
+    if(parseInt(data.time)!=0&&(data.time.trim()!="")){
+        hour= Storage.read("hour");
+        minute= Storage.read("minute");
+        second= Storage.read("second");
+        $("#timer").css("display","block");
+        $("#timer").draggable();
+        timerExisting=true;
+        setTime();
+        intervalID = setTimeout(timer, 1000);
+    }
+}
+
+function quizEnded() {
+    window.find("#nameUserWindow").text(localStorage.getItem("NameUser"));
+    window.find("#markUserWindow").text("Опитування завершено: "+Storage.read("markOfUser")+" б.");
+    $("body").append(window);
 }
 
 function setQuizName(name){
@@ -255,9 +281,25 @@ function  setTextQuest(objQuest,count){
 var end = false;
 
 $("#endQuize").click(function () {
-    end=true;
+    if(timerExisting){
+        end=true;
+    }else{
+        window.find("#nameUserWindow").text(localStorage.getItem("NameUser"));
+        window.find("#markUserWindow").text(markOfUser + " б.");
+        $("body").append(window);
+    }
 });
+var window= $(Templates.Window_Mark());
+$("#backToMainFromShow").click(function(){
+    if(timerExisting){
+        end=true;
+    }else{
+        window.find("#nameUserWindow").text(localStorage.getItem("NameUser"));
+        window.find("#markUserWindow").text(markOfUser + " б.");
+        $("body").append(window);
+    }
 
+});
 
 
 function timer(){
@@ -279,14 +321,25 @@ function timer(){
 
         if(end){
             clearInterval(intervalID);
+            window.find("#nameUserWindow").text(localStorage.getItem("NameUser"));
+            window.find("#markUserWindow").text(markOfUser + " б.");
+            $("body").append(window);
 
-            alert(localStorage.getItem("NameUser")+" : "+markOfUser);
         }else{
+            Storage.write("hour",hour);
+            Storage.write("minute",minute);
+            Storage.write("second",second);
             setTime();
             setTimeout(timer, 1000);
         }
     }
 
+window.find("button").click(function () {
+    Storage.write("markOfUser",markOfUser);
+    Storage.write("finished",true);
+    window.hide();
+    location.href = main_page;
+});
 
 function setTime(){
     if(hour>=10&&minute>=10&&second>=10){
@@ -323,3 +376,5 @@ function  setStartTime(time){
 }
 
 exports.startQuiz = startQuiz;
+exports.recoverQuiz = recoverQuiz;
+exports.quizEnded=quizEnded;
