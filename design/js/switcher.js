@@ -12,9 +12,8 @@ var info_IDPassed="";
 var password="";
 
 
+
 function start() {
-
-
 
 
     $("#switch1").click(function () {
@@ -124,7 +123,7 @@ function start() {
                         Storage.write("quizData",quizData);
                         location.href = showQuize;
                     }else{
-                        alert("Can't find quiz.");
+                      $("#windowCheck").css("display","block");
                     }
 
                 }
@@ -135,6 +134,10 @@ function start() {
 
     });
 
+
+    $("#windowCheck").find("button").click(function () {
+        $("#windowCheck").css("display","none");
+    });
 
     $("#backToMain").click(function(){
         location.href = main_page;

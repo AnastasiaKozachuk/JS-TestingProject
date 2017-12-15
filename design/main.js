@@ -52,7 +52,7 @@ exports.read = function(key){
 var Templates = require('./templates');
 var resizeTextarea = require("./resizeTextarea");
 var API = require('../API');
-
+var Storage = require('./Storage');
 
 var myQuestion=[];
 
@@ -347,7 +347,7 @@ function getID(callback) {
 exports.addQuestion=addQuestion;
 exports.initializeQuize=initializeQuize;
 
-},{"../API":1,"./resizeTextarea":5,"./templates":8}],4:[function(require,module,exports){
+},{"../API":1,"./Storage":2,"./resizeTextarea":5,"./templates":8}],4:[function(require,module,exports){
 $(function() {
 
     var switcher = require("./switcher");
@@ -824,9 +824,8 @@ var info_IDPassed="";
 var password="";
 
 
+
 function start() {
-
-
 
 
     $("#switch1").click(function () {
@@ -936,7 +935,7 @@ function start() {
                         Storage.write("quizData",quizData);
                         location.href = showQuize;
                     }else{
-                        alert("Can't find quiz.");
+                      $("#windowCheck").css("display","block");
                     }
 
                 }
@@ -947,6 +946,10 @@ function start() {
 
     });
 
+
+    $("#windowCheck").find("button").click(function () {
+        $("#windowCheck").css("display","none");
+    });
 
     $("#backToMain").click(function(){
         location.href = main_page;
